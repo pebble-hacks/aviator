@@ -34,11 +34,11 @@ static uint8_t batteryPercent;
 
 static Window *window;
 
-
 static GFont *tiny_font;
 
 static TextLayer *tiny_top_text;
 static TextLayer *tiny_bottom_text;
+static TextLayer *tiny_alarm_text;
 
 static GBitmap *background_image;
 static BitmapLayer *background_layer;
@@ -66,7 +66,6 @@ static BitmapLayer *time_digits_layers[TOTAL_TIME_DIGITS];
 static Layer *zulu_time_layer;
 static GBitmap *zulu_time_digits_images[TOTAL_TIME_DIGITS];
 static BitmapLayer *zulu_time_digits_layers[TOTAL_TIME_DIGITS];
-
 
 static Layer *date_layer;
 
@@ -104,9 +103,39 @@ const int MED_IMAGE_RESOURCE_IDS[] = {
   RESOURCE_ID_IMAGE_MED_DIVIDE
 };
 
-//static RotBitmapLayer *minute_hand_layer;
 
+bool isSpace(char c) {
+    switch (c) {
+        case ' ':
+        case '\n':
+        case '\t':
+        case '\f':
+        case '\r':
+            return true;
+            break;
+        default:
+            return false;
+            break;
+    }
+}
 
+char* trim(char* input) {
+    char* start = input;
+    while (isSpace(*start)) { //trim left
+        start++;
+    }
+
+    char* ptr = start;
+    char* end = start;
+    while (*ptr++ != '\0') { //trim right
+        if (!isSpace(*ptr)) { //only move end pointer if char isn't a space
+            end = ptr;
+        }
+    }
+
+    *end = '\0'; //terminate the trimmed string with a null
+    return start;
+}
 
 
 static void remove_invert() {
@@ -175,6 +204,7 @@ static void toggleSeconds(bool hidden) {
     }
   }
   else {
+    //seconds are visible
     if(mTimeLayerShifted) {
       //12hr clock, single digit
       layer_set_frame(time_layer, GRect(-7, 0, 144, 168));
@@ -198,23 +228,19 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple* new_tup
   
   switch (key) {
     case SECONDS_KEY:
-      //if(mSeconds != new_tuple->value->uint8) {
-        mSeconds = new_tuple->value->uint8;
-        tick_timer_service_unsubscribe();
-        if(mSeconds) {
-          toggleSeconds(false);
-          tick_timer_service_subscribe(SECOND_UNIT, handle_tick);
-        }
-        else {
-          toggleSeconds(true);
-          tick_timer_service_subscribe(MINUTE_UNIT, handle_tick);
-        }
-      //}
+      mSeconds = new_tuple->value->uint8;
+      tick_timer_service_unsubscribe();
+      if(mSeconds) {
+        toggleSeconds(false);
+        tick_timer_service_subscribe(SECOND_UNIT, handle_tick);
+      }
+      else {
+        toggleSeconds(true);
+        tick_timer_service_subscribe(MINUTE_UNIT, handle_tick);
+      }
       break;
     case INVERT_KEY:
-      //if(mInvert==1 && new_tuple->value->uint8 == 0) {
-        remove_invert();
-      //}
+      remove_invert();
       mInvert = new_tuple->value->uint8;
       if(mInvert) {
         set_invert();
@@ -224,56 +250,53 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple* new_tup
       mBluetoothVibe = new_tuple->value->uint8;
       break;      
     case VIBEMINUTES_KEY:
-      mVibeMinutes = new_tuple->value->uint8;
+      mVibeMinutes = new_tuple->value->int32;
       mVibeMinutesTimer = mVibeMinutes;
+      if(mVibeMinutes>0) {
+        static char label_text[20] = "";  
+        snprintf(label_text, 
+                 sizeof(label_text), 
+                 "CR.AL:%d", mVibeMinutes);
+        text_layer_set_text(tiny_alarm_text, trim(label_text));
+        layer_set_hidden(text_layer_get_layer(tiny_alarm_text), false);
+      }
+      else {
+        layer_set_hidden(text_layer_get_layer(tiny_alarm_text), true);
+      }
       break;
     case HANDS_KEY:
       mHands = new_tuple->value->uint8;
       ///////////////
       break;
     case STYLE_KEY:
-      //if(mStyle != new_tuple->value->uint8) {
-        mStyle = new_tuple->value->uint8;
-        time_t now = time(NULL);
-        struct tm *tick_time = localtime(&now); 
-        if(mStyle<2) {
-          layer_set_hidden(zulu_time_layer, true);
-		  layer_set_hidden(text_layer_get_layer(tiny_bottom_text), true);
-          layer_set_hidden(date_layer, false); 
-          handle_tick(tick_time, DAY_UNIT);
-        }
-        else {
-          layer_set_hidden(zulu_time_layer, false);
-		  layer_set_hidden(text_layer_get_layer(tiny_bottom_text), false);
-          layer_set_hidden(date_layer, true);
-          if(mSeconds) {
-            handle_tick(tick_time, HOUR_UNIT+MINUTE_UNIT+SECOND_UNIT);
-          } 
-          else {
-            handle_tick(tick_time, HOUR_UNIT+MINUTE_UNIT);
-          }
+      mStyle = new_tuple->value->uint8;
+      time_t now = time(NULL);
+      struct tm *tick_time = localtime(&now); 
+      if(mStyle<2) {
+        layer_set_hidden(zulu_time_layer, true);
+        layer_set_hidden(text_layer_get_layer(tiny_bottom_text), true);
+        layer_set_hidden(date_layer, false); 
+        handle_tick(tick_time, DAY_UNIT);
+      }
+      else {
+        layer_set_hidden(zulu_time_layer, false);
+        layer_set_hidden(text_layer_get_layer(tiny_bottom_text), false);
+        layer_set_hidden(date_layer, true);
+        if(mSeconds) {
+          handle_tick(tick_time, HOUR_UNIT+MINUTE_UNIT+SECOND_UNIT);
         } 
-      //}
+        else {
+          handle_tick(tick_time, HOUR_UNIT+MINUTE_UNIT);
+        }
+      } 
       break;
     case BACKGROUND_KEY:
-      //if(mBackground != new_tuple->value->uint8) {
-        mBackground = new_tuple->value->uint8;
-        change_background();
-      //}
+      mBackground = new_tuple->value->uint8;
+      change_background();
       break;
     case TIMEZONE_OFFSET_KEY:
       mTimezoneOffset = new_tuple->value->int32;
-	  /*
-      if (mStyle == 2) {
-        time_t utc = time(NULL) + mTimezoneOffset;
-        struct tm zulu = *localtime(&utc);
-        update_zulu_hours(&zulu);
-        update_zulu_minutes(&zulu);
-		if(mSeconds) {
-          update_zulu_seconds(&zulu);
-		}
-      }
-	  */
+
       time_t tnow = time(NULL);
       struct tm *ttick_time = localtime(&tnow);  
       handle_tick(ttick_time, SECOND_UNIT+MINUTE_UNIT+HOUR_UNIT+DAY_UNIT);
@@ -302,40 +325,6 @@ static void set_container_image(GBitmap **bmp_image, BitmapLayer *bmp_layer, con
     gbitmap_destroy(old_image);
     old_image = NULL;
   }
-}
-
-
-bool isSpace(char c) {
-    switch (c) {
-        case ' ':
-        case '\n':
-        case '\t':
-        case '\f':
-        case '\r':
-            return true;
-            break;
-        default:
-            return false;
-            break;
-    }
-}
-
-char* trim(char* input) {
-    char* start = input;
-    while (isSpace(*start)) { //trim left
-        start++;
-    }
-
-    char* ptr = start;
-    char* end = start;
-    while (*ptr++ != '\0') { //trim right
-        if (!isSpace(*ptr)) { //only move end pointer if char isn't a space
-            end = ptr;
-        }
-    }
-
-    *end = '\0'; //terminate the trimmed string with a null
-    return start;
 }
 
 static void update_battery(BatteryChargeState charge_state) {
@@ -675,23 +664,14 @@ static void window_load(Window *window) {
   text_layer_set_text_color(tiny_bottom_text, GColorWhite);
   text_layer_set_font(tiny_bottom_text, tiny_font);
   text_layer_set_text_alignment(tiny_bottom_text, GTextAlignmentCenter);
-  layer_add_child(window_layer, text_layer_get_layer(tiny_bottom_text));   
-  
-  //MINUTE HAND
-/*
-  minute_hand_layer = rot_bitmap_layer_create(gbitmap_create_with_resource(RESOURCE_ID_IMAGE_HAND_MINUTE));  
-  //GRect bounds = layer_get_bounds((Layer*)minute_hand_layer);
-  // "Bounds: w:%d h:%d", bounds.size.w, bounds.size.h);
- // const GPoint center = grect_center_point(&bounds);
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Center: w:%d h:%d", center.x, center.y);
-  GRect image_frame = (GRect) { .origin = { .x=9, .y=20}, .size = {.w=126, .h=126} };
+  layer_add_child(window_layer, text_layer_get_layer(tiny_bottom_text)); 
 
-  layer_set_frame((Layer*)minute_hand_layer, image_frame);
-  layer_add_child(window_get_root_layer(window), (Layer*)minute_hand_layer);
-  //rot_bitmap_set_src_ic(minute_hand_layer, center);
-  rot_bitmap_set_compositing_mode(minute_hand_layer, GCompOpOr );
-  rot_bitmap_layer_set_angle(minute_hand_layer, 0);
-*/
+  tiny_alarm_text = text_layer_create(GRect(0, 117, 144, 14));  
+  text_layer_set_background_color(tiny_alarm_text, GColorClear);
+  text_layer_set_text_color(tiny_alarm_text, GColorWhite);
+  text_layer_set_font(tiny_alarm_text, tiny_font);
+  text_layer_set_text_alignment(tiny_alarm_text, GTextAlignmentCenter);
+  layer_add_child(window_layer, text_layer_get_layer(tiny_alarm_text));   
   
   // Avoids a blank screen on watch start.
   time_t now = time(NULL);
@@ -713,8 +693,6 @@ static void window_load(Window *window) {
       sync_tuple_changed_callback, NULL, NULL);
 
   mAppStarted = true;  
-
-
 
   tick_timer_service_subscribe(SECOND_UNIT, handle_tick);
   battery_state_service_subscribe(&update_battery);
@@ -768,6 +746,7 @@ static void window_unload(Window *window) {
 
   text_layer_destroy(tiny_top_text);
   text_layer_destroy(tiny_bottom_text);
+  text_layer_destroy(tiny_alarm_text);
   inverter_layer_destroy(inverter_layer);
   layer_destroy(time_layer);
   layer_destroy(zulu_time_layer);
