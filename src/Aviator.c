@@ -166,19 +166,19 @@ static void toggleSeconds(bool hidden) {
     //seconds aren't visible
     if(mTimeLayerShifted) {
       //12hr clock, single digit
-      layer_set_frame(time_layer, GRect(17, 0, 144, 168)); //THIS IS PROBABLY WRONG .X
-      layer_set_frame(zulu_time_layer, GRect(17, 0, 144, 168));
+      layer_set_frame(time_layer, GRect(9, 0, 144, 168)); 
+      layer_set_frame(zulu_time_layer, GRect(9, 0, 144, 168));
     }
     else {
-      layer_set_frame(time_layer, GRect(17, 0, 144, 168)); //THIS MIGHT BE WRONG .X
-      layer_set_frame(zulu_time_layer, GRect(17, 0, 144, 168));
+      layer_set_frame(time_layer, GRect(16, 0, 144, 168)); 
+      layer_set_frame(zulu_time_layer, GRect(16, 0, 144, 168));
     }
   }
   else {
     if(mTimeLayerShifted) {
       //12hr clock, single digit
-      layer_set_frame(time_layer, GRect(-6, 0, 144, 168));
-      layer_set_frame(zulu_time_layer, GRect(-6, 0, 144, 168));
+      layer_set_frame(time_layer, GRect(-7, 0, 144, 168));
+      layer_set_frame(zulu_time_layer, GRect(-7, 0, 144, 168));
     }
     else {
       layer_set_frame(time_layer, GRect(0, 0, 144, 168));
@@ -490,7 +490,7 @@ static void update_zulu_hours(struct tm *tick_time) {
 
   if (!clock_is_24h_style()) { 
     if (display_hour/10 == 0) {
-      layer_set_frame(zulu_time_layer, GRect(-6, 0, 144, 168));
+      layer_set_frame(zulu_time_layer, GRect(-7, 0, 144, 168));
       layer_set_hidden(bitmap_layer_get_layer(zulu_time_digits_layers[0]), true);
     }
     else {
