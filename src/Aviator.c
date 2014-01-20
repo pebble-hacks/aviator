@@ -235,11 +235,13 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple* new_tup
         struct tm *tick_time = localtime(&now); 
         if(mStyle<2) {
           layer_set_hidden(zulu_time_layer, true);
+		  layer_set_hidden(text_layer_get_layer(tiny_bottom_text), true);
           layer_set_hidden(date_layer, false); 
           handle_tick(tick_time, DAY_UNIT);
         }
         else {
           layer_set_hidden(zulu_time_layer, false);
+		  layer_set_hidden(text_layer_get_layer(tiny_bottom_text), false);
           layer_set_hidden(date_layer, true);
           if(mSeconds) {
             handle_tick(tick_time, HOUR_UNIT+MINUTE_UNIT+SECOND_UNIT);
@@ -661,14 +663,14 @@ static void window_load(Window *window) {
   text_layer_set_text_color(tiny_top_text, GColorWhite);
   text_layer_set_font(tiny_top_text, tiny_font);
   text_layer_set_text_alignment(tiny_top_text, GTextAlignmentCenter);
-  layer_add_child(time_layer, text_layer_get_layer(tiny_top_text)); 
+  layer_add_child(window_layer, text_layer_get_layer(tiny_top_text)); 
   
   tiny_bottom_text = text_layer_create(GRect(0, 108, 144, 14));  
   text_layer_set_background_color(tiny_bottom_text, GColorClear);
   text_layer_set_text_color(tiny_bottom_text, GColorWhite);
   text_layer_set_font(tiny_bottom_text, tiny_font);
   text_layer_set_text_alignment(tiny_bottom_text, GTextAlignmentCenter);
-  layer_add_child(zulu_time_layer, text_layer_get_layer(tiny_bottom_text));   
+  layer_add_child(window_layer, text_layer_get_layer(tiny_bottom_text));   
   
   //MINUTE HAND
 /*
