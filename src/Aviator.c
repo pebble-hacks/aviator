@@ -188,6 +188,9 @@ static void toggleSeconds(bool hidden) {
 }
 
 static void handle_tick(struct tm *tick_time, TimeUnits units_changed);
+static void update_zulu_hours(struct tm *tick_time);
+static void update_zulu_minutes(struct tm *tick_time);
+static void update_zulu_seconds(struct tm *tick_time);
 
 static void sync_tuple_changed_callback(const uint32_t key, const Tuple* new_tuple, const Tuple* old_tuple, void* context) {
   
@@ -260,24 +263,21 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple* new_tup
       break;
     case TIMEZONE_OFFSET_KEY:
       mTimezoneOffset = new_tuple->value->int32;
-      
-      /*
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "Timezone offset: %d", mTimezoneOffset);
-      
-      time_t local, utc;
-      time(&local);
-      utc = local + mTimezoneOffset;   
-      struct tm *tick_time = localtime(&utc);
-      
-      static char date_test[] = "XXXXXXXXXXXXXXXXXXXXX";
-      
-      strftime(date_test,
-                 sizeof(date_test),
-                 "%a %d %b - %H:%M",
-                 tick_time);
-
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "Timezone test: %s", date_test);
-      */
+	  /*
+      if (mStyle == 2) {
+        time_t utc = time(NULL) + mTimezoneOffset;
+        struct tm zulu = *localtime(&utc);
+        update_zulu_hours(&zulu);
+        update_zulu_minutes(&zulu);
+		if(mSeconds) {
+          update_zulu_seconds(&zulu);
+		}
+      }
+	  */
+      time_t now = time(NULL);
+      struct tm *tick_time = localtime(&now);  
+      handle_tick(tick_time, SECOND_UNIT+MINUTE_UNIT+HOUR_UNIT+DAY_UNIT);
+	  
       break;
   }
 }
@@ -532,18 +532,18 @@ static void update_zulu_seconds(struct tm *tick_time) {
 
 
 static void handle_tick(struct tm *tick_time, TimeUnits units_changed) {
-  time_t local = time(NULL);
-  static time_t utc;
-  utc = local + mTimezoneOffset;   
-  struct tm *zulu_tick_time = localtime(&utc);
-  
+
+  time_t utc = time(NULL) + mTimezoneOffset;
+  struct tm zulu_tick_time = *localtime(&utc);	
+	
+  //// BEGIN SECTION - Remove this section and the zulu/local time are the same value? ////
   static char local_date_test[] = "XXXXXXXXXXXXXXXXXXXXX";
   
   strftime(local_date_test,
              sizeof(local_date_test),
              "%a %d %b - %H:%M",
              tick_time);
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Local Time: %s", local_date_test);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Local Time: %s", local_date_test);
   
   if(mStyle==2) {      
 
@@ -552,42 +552,41 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed) {
       strftime(date_test,
                  sizeof(date_test),
                  "%a %d %b - %H:%M",
-                 zulu_tick_time);
+                 &zulu_tick_time);
 
-      //APP_LOG(APP_LOG_LEVEL_DEBUG, "Offset: %d - Zulu Time: %s", mTimezoneOffset, date_test);
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "Offset: %d - Zulu Time: %s", mTimezoneOffset, date_test);
   }
+  //// END SECTION ////
+
   if (units_changed & DAY_UNIT && mStyle<2) {
     update_days(tick_time);
   }
   if (units_changed & HOUR_UNIT) {
     update_hours(tick_time);
     if(mStyle==2) {
-      update_zulu_hours(zulu_tick_time);
+      update_zulu_hours(&zulu_tick_time);
     }
   }
   if (units_changed & MINUTE_UNIT) {
     update_minutes(tick_time);
     if(mStyle==2) {
-      update_zulu_minutes(zulu_tick_time);
+      update_zulu_minutes(&zulu_tick_time);
     }
   }	
   if (units_changed & SECOND_UNIT && mSeconds==1) {
     update_seconds(tick_time);
     if(mStyle==2) {
-      update_zulu_seconds(zulu_tick_time);
+      update_zulu_seconds(&zulu_tick_time);
     }
   }		
 }
 
 static void window_load(Window *window) {
-
   
   memset(&time_digits_layers, 0, sizeof(time_digits_layers));
   memset(&time_digits_images, 0, sizeof(time_digits_images));
   memset(&date_digits_layers, 0, sizeof(date_digits_layers));
   memset(&date_digits_images, 0, sizeof(date_digits_images));
-  
- 
   
   Layer *window_layer = window_get_root_layer(window);
   
