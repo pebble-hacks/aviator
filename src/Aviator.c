@@ -153,22 +153,24 @@ void change_background() {
   
 }
 static void toggleSeconds(bool hidden) {
-///////////////zulu_
+	
   layer_set_hidden(bitmap_layer_get_layer(time_digits_layers[5]), hidden);
   layer_set_hidden(bitmap_layer_get_layer(time_digits_layers[6]), hidden);
   layer_set_hidden(bitmap_layer_get_layer(time_digits_layers[7]), hidden);
+  
   layer_set_hidden(bitmap_layer_get_layer(zulu_time_digits_layers[5]), hidden);
   layer_set_hidden(bitmap_layer_get_layer(zulu_time_digits_layers[6]), hidden);
   layer_set_hidden(bitmap_layer_get_layer(zulu_time_digits_layers[7]), hidden);
+
   if(hidden) {
     //seconds aren't visible
     if(mTimeLayerShifted) {
       //12hr clock, single digit
-      layer_set_frame(time_layer, GRect(17, 0, 144, 168));
+      layer_set_frame(time_layer, GRect(17, 0, 144, 168)); //THIS IS PROBABLY WRONG .X
       layer_set_frame(zulu_time_layer, GRect(17, 0, 144, 168));
     }
     else {
-      layer_set_frame(time_layer, GRect(17, 0, 144, 168));
+      layer_set_frame(time_layer, GRect(17, 0, 144, 168)); //THIS MIGHT BE WRONG .X
       layer_set_frame(zulu_time_layer, GRect(17, 0, 144, 168));
     }
   }
@@ -239,7 +241,12 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple* new_tup
         else {
           layer_set_hidden(zulu_time_layer, false);
           layer_set_hidden(date_layer, true);
-          handle_tick(tick_time, HOUR_UNIT+MINUTE_UNIT+SECOND_UNIT);
+          if(mSeconds) {
+            handle_tick(tick_time, HOUR_UNIT+MINUTE_UNIT+SECOND_UNIT);
+          } 
+          else {
+            handle_tick(tick_time, HOUR_UNIT+MINUTE_UNIT);
+          }
         } 
       }
       break;
@@ -279,9 +286,6 @@ void bluetooth_connection_callback(bool connected) {
     vibes_long_pulse();
   }
 }
-
-
-
 
 static void set_container_image(GBitmap **bmp_image, BitmapLayer *bmp_layer, const int resource_id, GPoint origin) {
   GBitmap *old_image = *bmp_image;
@@ -646,23 +650,22 @@ static void window_load(Window *window) {
   layer_add_child(window_layer, bitmap_layer_get_layer(battery_image_layer));  
   update_battery(battery_state_service_peek());
 
-	tiny_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_TINY_12));
-  
+  //TINY TEXT LABELS
+  tiny_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_TINY_12));
   
   tiny_top_text = text_layer_create(GRect(0, 46, 144, 14));  
-	text_layer_set_background_color(tiny_top_text, GColorClear);
+  text_layer_set_background_color(tiny_top_text, GColorClear);
   text_layer_set_text_color(tiny_top_text, GColorWhite);
-	text_layer_set_font(tiny_top_text, tiny_font);
-	text_layer_set_text_alignment(tiny_top_text, GTextAlignmentCenter);
-	layer_add_child(window_layer, text_layer_get_layer(tiny_top_text)); 
-  
+  text_layer_set_font(tiny_top_text, tiny_font);
+  text_layer_set_text_alignment(tiny_top_text, GTextAlignmentCenter);
+  layer_add_child(time_layer, text_layer_get_layer(tiny_top_text)); 
   
   tiny_bottom_text = text_layer_create(GRect(0, 108, 144, 14));  
-	text_layer_set_background_color(tiny_bottom_text, GColorClear);
+  text_layer_set_background_color(tiny_bottom_text, GColorClear);
   text_layer_set_text_color(tiny_bottom_text, GColorWhite);
-	text_layer_set_font(tiny_bottom_text, tiny_font);
-	text_layer_set_text_alignment(tiny_bottom_text, GTextAlignmentCenter);
-	layer_add_child(window_layer, text_layer_get_layer(tiny_bottom_text));   
+  text_layer_set_font(tiny_bottom_text, tiny_font);
+  text_layer_set_text_alignment(tiny_bottom_text, GTextAlignmentCenter);
+  layer_add_child(zulu_time_layer, text_layer_get_layer(tiny_bottom_text));   
   
   //MINUTE HAND
 /*
@@ -775,9 +778,6 @@ static void deinit(void) {
 
 int main(void) {
   init();
-
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Done initializing, pushed window: %p", window);
-
   app_event_loop();
   deinit();
 }
