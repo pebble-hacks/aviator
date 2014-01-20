@@ -198,7 +198,7 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple* new_tup
   
   switch (key) {
     case SECONDS_KEY:
-      if(mSeconds != new_tuple->value->uint8) {
+      //if(mSeconds != new_tuple->value->uint8) {
         mSeconds = new_tuple->value->uint8;
         tick_timer_service_unsubscribe();
         if(mSeconds) {
@@ -209,12 +209,12 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple* new_tup
           toggleSeconds(true);
           tick_timer_service_subscribe(MINUTE_UNIT, handle_tick);
         }
-      }
+      //}
       break;
     case INVERT_KEY:
-      if(mInvert==1 && new_tuple->value->uint8 == 0) {
+      //if(mInvert==1 && new_tuple->value->uint8 == 0) {
         remove_invert();
-      }
+      //}
       mInvert = new_tuple->value->uint8;
       if(mInvert) {
         set_invert();
@@ -232,7 +232,7 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple* new_tup
       ///////////////
       break;
     case STYLE_KEY:
-      if(mStyle != new_tuple->value->uint8) {
+      //if(mStyle != new_tuple->value->uint8) {
         mStyle = new_tuple->value->uint8;
         time_t now = time(NULL);
         struct tm *tick_time = localtime(&now); 
@@ -253,13 +253,13 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple* new_tup
             handle_tick(tick_time, HOUR_UNIT+MINUTE_UNIT);
           }
         } 
-      }
+      //}
       break;
     case BACKGROUND_KEY:
-      if(mBackground != new_tuple->value->uint8) {
+      //if(mBackground != new_tuple->value->uint8) {
         mBackground = new_tuple->value->uint8;
         change_background();
-      }
+      //}
       break;
     case TIMEZONE_OFFSET_KEY:
       mTimezoneOffset = new_tuple->value->int32;
@@ -274,9 +274,9 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple* new_tup
 		}
       }
 	  */
-      time_t now = time(NULL);
-      struct tm *tick_time = localtime(&now);  
-      handle_tick(tick_time, SECOND_UNIT+MINUTE_UNIT+HOUR_UNIT+DAY_UNIT);
+      time_t tnow = time(NULL);
+      struct tm *ttick_time = localtime(&tnow);  
+      handle_tick(ttick_time, SECOND_UNIT+MINUTE_UNIT+HOUR_UNIT+DAY_UNIT);
 	  
       break;
   }
@@ -566,6 +566,12 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed) {
     if(mStyle==2) {
       update_zulu_hours(&zulu_tick_time);
     }
+    if(mSeconds) {
+      toggleSeconds(false);
+    }
+    else {
+      toggleSeconds(true);
+    }
   }
   if (units_changed & MINUTE_UNIT) {
     update_minutes(tick_time);
@@ -687,6 +693,11 @@ static void window_load(Window *window) {
   rot_bitmap_layer_set_angle(minute_hand_layer, 0);
 */
   
+  // Avoids a blank screen on watch start.
+  time_t now = time(NULL);
+  struct tm *tick_time = localtime(&now);  
+  handle_tick(tick_time, SECOND_UNIT+MINUTE_UNIT+HOUR_UNIT+DAY_UNIT);
+	
   Tuplet initial_values[] = {
     TupletInteger(SECONDS_KEY, 1),
     TupletInteger(INVERT_KEY, 0),
@@ -703,10 +714,7 @@ static void window_load(Window *window) {
 
   mAppStarted = true;  
 
-  // Avoids a blank screen on watch start.
-  time_t now = time(NULL);
-  struct tm *tick_time = localtime(&now);  
-  handle_tick(tick_time, SECOND_UNIT+MINUTE_UNIT+HOUR_UNIT+DAY_UNIT);
+
 
   tick_timer_service_subscribe(SECOND_UNIT, handle_tick);
   battery_state_service_subscribe(&update_battery);
