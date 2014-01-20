@@ -624,6 +624,9 @@ static void window_load(Window *window) {
   set_container_image(&zulu_time_digits_images[2], zulu_time_digits_layers[2], MED_IMAGE_RESOURCE_IDS[10], GPoint(54, 100));  
   set_container_image(&zulu_time_digits_images[5], zulu_time_digits_layers[5], MED_IMAGE_RESOURCE_IDS[10], GPoint(87, 100));  
   
+  //HIDE ZULU INITIALLY
+  layer_set_hidden(zulu_time_layer, true);
+  
   // DATE LAYER //  
   date_layer = layer_create(layer_get_frame(window_layer));
   layer_add_child(window_layer, date_layer);  
