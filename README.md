@@ -5,6 +5,8 @@ Aviator Watchface for Pebble 2.0 by orviwan. Based on a original design by ninth
 
 Lots of configuration settings available via the Phone application.
 
+<img src="http://i.imgur.com/7TluPRO.png" alt=" " />
+
 <img src="http://i.imgur.com/C5LPr6N.png" alt=" " />
 
 <img src="http://i.imgur.com/eqNSzpe.png" alt=" " />
