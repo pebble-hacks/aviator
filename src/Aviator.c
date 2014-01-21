@@ -15,7 +15,7 @@ static bool mAppStarted = false;
 static bool mTimeLayerShifted = false;
 
 static int mAngleMinute = 0;
-static int mAngleSecond = 0;
+static int mAngleHour = 0;
 
 static struct tm zulu_tick_time;
 
@@ -429,6 +429,8 @@ static void update_hours(struct tm *tick_time) {
 
     text_layer_set_text(tiny_top_text, trim(top_text));
 
+	// Compute hour hand angle : complete round is 12 hours * 60 minutes = 720 minutes
+	mAngleHour = (((tick_time->tm_hour%12)*60+tick_time->tm_min) * TRIG_MAX_ANGLE / 720 + 3 * TRIG_MAX_ANGLE / 4) % TRIG_MAX_ANGLE;
 }
 
 static void update_minutes(struct tm *tick_time) {
@@ -445,6 +447,7 @@ static void update_minutes(struct tm *tick_time) {
 
     // Compute minute hand angle
     mAngleMinute = (tick_time->tm_min * TRIG_MAX_ANGLE / 60 + 3 * TRIG_MAX_ANGLE / 4) % TRIG_MAX_ANGLE;
+    layer_mark_dirty(hands_layer);
 }
 
 static void update_seconds(struct tm *tick_time) {
@@ -452,33 +455,31 @@ static void update_seconds(struct tm *tick_time) {
     set_container_image(&time_digits_images[7], time_digits_layers[7], MED_IMAGE_RESOURCE_IDS[tick_time->tm_sec % 10], GPoint(106, 62));
 
     // rot_bitmap_layer_increment_angle(minute_hand_layer, 6);
-    mAngleSecond = (tick_time->tm_sec * TRIG_MAX_ANGLE / 60 + 3 * TRIG_MAX_ANGLE / 4) % TRIG_MAX_ANGLE;
-    layer_mark_dirty(hands_layer);
 }
 
 static void update_hands_layer(Layer * layer, GContext * ctx) {
-    int32_t cos_sec, sin_sec, cos_min, sin_min;
+    int32_t cos_hour, sin_hour, cos_min, sin_min;
     GPoint p;
 
     if (mHands) {
-		// Compute minute hand position
-		cos_min = cos_lookup(mAngleMinute);
-		sin_min = sin_lookup(mAngleMinute);
-		p.x = 72 + 59 * cos_min / TRIG_MAX_RATIO;
-		p.y = 84 + 59 * sin_min / TRIG_MAX_RATIO;
+		// Compute hour hand position
+		cos_hour = cos_lookup(mAngleHour);
+		sin_hour = sin_lookup(mAngleHour);
+		p.x = 72 + 59 * cos_hour / TRIG_MAX_RATIO;
+		p.y = 84 + 59 * sin_hour / TRIG_MAX_RATIO;
 
-		// Draw second hand
+		// Draw hour hand
 		graphics_context_set_stroke_color(ctx, GColorWhite);
 		graphics_context_set_fill_color(ctx, GColorWhite);
 		graphics_fill_circle(ctx, p, 3);
 
-		// Compute second hand position
-		cos_sec = cos_lookup(mAngleSecond);
-		sin_sec = sin_lookup(mAngleSecond);
-		p.x = 72 + 60 * cos_sec / TRIG_MAX_RATIO;
-		p.y = 84 + 60 * sin_sec / TRIG_MAX_RATIO;
+		// Compute minute hand position
+		cos_min = cos_lookup(mAngleMinute);
+		sin_min = sin_lookup(mAngleMinute);
+		p.x = 72 + 60 * cos_min / TRIG_MAX_RATIO;
+		p.y = 84 + 60 * sin_min / TRIG_MAX_RATIO;
 
-		// Draw second hand
+		// Draw minute hand
 		graphics_context_set_fill_color(ctx, GColorBlack);
 		graphics_fill_circle(ctx, p, 2);
 		graphics_draw_circle(ctx, p, 2);
