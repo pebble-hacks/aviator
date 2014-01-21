@@ -419,12 +419,15 @@ static void update_hours(struct tm *tick_time) {
 		}
 
 		if (tick_time->tm_hour < 12) {
-			snprintf(top_text, sizeof(top_text), "LOCAL %s", "AM");
+			//snprintf(top_text, sizeof(top_text), "LOCAL %s", "AM");
+			strncpy(top_text, "LOCAL AM", sizeof(top_text));
 		} else {
-			snprintf(top_text, sizeof(top_text), "LOCAL %s", "PM");
+			//snprintf(top_text, sizeof(top_text), "LOCAL %s", "PM");
+			strncpy(top_text, "LOCAL PM", sizeof(top_text));
 		}
 	} else {
-		snprintf(top_text, sizeof(top_text), "LOCAL %s", "24");
+		//snprintf(top_text, sizeof(top_text), "LOCAL %s", "24");
+		strncpy(top_text, "LOCAL 24", sizeof(top_text));
     }
 
     text_layer_set_text(tiny_top_text, trim(top_text));
@@ -503,12 +506,15 @@ static void update_zulu_hours(struct tm *tick_time) {
 		}
 
 		if (tick_time->tm_hour < 12) {
-			snprintf(label_text, sizeof(label_text), "ZULU %s", "AM");
+			//snprintf(label_text, sizeof(label_text), "ZULU %s", "AM");
+			strncpy(label_text, "ZULU AM", sizeof(label_text));
 		} else {
-			snprintf(label_text, sizeof(label_text), "ZULU %s", "PM");
+			//snprintf(label_text, sizeof(label_text), "ZULU %s", "PM");
+			strncpy(label_text, "ZULU PM", sizeof(label_text));
 		}
     } else {
-		snprintf(label_text, sizeof(label_text), "ZULU %s", "24");
+		//snprintf(label_text, sizeof(label_text), "ZULU %s", "24");
+		strncpy(label_text, "ZULU 24", sizeof(label_text));
     }
 
     text_layer_set_text(tiny_bottom_text, trim(label_text));
