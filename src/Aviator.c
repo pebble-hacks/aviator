@@ -1,11 +1,11 @@
 #include <pebble.h>
 
 static int mSeconds;		// Show seconds on clock (0/1)
-static int mInvert;		    // Invert colours (0/1)
+static int mInvert;			// Invert colours (0/1)
 static int mBluetoothVibe;	// Vibrate on bluetooth disconnect (0/1)
 static int mVibeMinutes;	// Vibrate every X minutes
-static int mHands;		    // Show clock hands (0/1)
-static int mStyle;		    // Date International (0), Date US (1), Local/Zulu (2)
+static int mHands;			// Show clock hands (0/1)
+static int mStyle;			// Date International (0), Date US (1), Local/Zulu (2)
 static int mBackground;		// Background Image: Full (0), Simple (1), Minimal (2), None (3)
 
 static int mTimezoneOffset = 0;
@@ -13,10 +13,6 @@ static int mVibeMinutesTimer = 0;
 
 static bool mAppStarted = false;
 static bool mTimeLayerShifted = false;
-
-static GPoint center = { 72, 84 };
-static GBitmap *minuteHandBitmap, *hourHandBitmap;
-static RotBitmapLayer *minuteHandLayer, *hourHandLayer;
 
 static struct tm zulu_tick_time;
 
@@ -28,7 +24,8 @@ enum {
     HANDS_KEY = 0x4,
     STYLE_KEY = 0x5,
     BACKGROUND_KEY = 0x6,
-    TIMEZONE_OFFSET_KEY = 0x7
+    TIMEZONE_OFFSET_KEY = 0x7,
+    NUM_CONFIG_KEYS = 0x8
 };
 
 static AppSync sync;
@@ -53,30 +50,28 @@ static GBitmap *battery_image;
 static BitmapLayer *battery_image_layer;
 
 const int BATTERY_IMAGE_RESOURCE_IDS[] = {
-    RESOURCE_ID_IMAGE_BATTERY_100,
-    RESOURCE_ID_IMAGE_BATTERY_75,
-    RESOURCE_ID_IMAGE_BATTERY_50,
-    RESOURCE_ID_IMAGE_BATTERY_25,
     RESOURCE_ID_IMAGE_BATTERY_0,
+    RESOURCE_ID_IMAGE_BATTERY_25,
+    RESOURCE_ID_IMAGE_BATTERY_50,
+    RESOURCE_ID_IMAGE_BATTERY_75,
+    RESOURCE_ID_IMAGE_BATTERY_100,
     RESOURCE_ID_IMAGE_BATTERY_CHARGE
 };
+
+#define CHARGING 5
+static GBitmap *battery_bitmap[6]; // 0, 25, 50, 75, 100 and charging
 
 static Layer *time_layer;
 
 #define TOTAL_TIME_DIGITS 8	// 00:00:00
-static GBitmap *time_digits_images[TOTAL_TIME_DIGITS];
 static BitmapLayer *time_digits_layers[TOTAL_TIME_DIGITS];
 
 static Layer *zulu_time_layer;
-static GBitmap *zulu_time_digits_images[TOTAL_TIME_DIGITS];
 static BitmapLayer *zulu_time_digits_layers[TOTAL_TIME_DIGITS];
-
-static Layer *hands_layer;
 
 static Layer *date_layer;
 
 #define TOTAL_DATE_DIGITS 10	// 00-00-0000
-static GBitmap *date_digits_images[TOTAL_DATE_DIGITS];
 static BitmapLayer *date_digits_layers[TOTAL_DATE_DIGITS];
 
 const int TINY_IMAGE_RESOURCE_IDS[] = {
@@ -108,6 +103,15 @@ const int MED_IMAGE_RESOURCE_IDS[] = {
     RESOURCE_ID_IMAGE_MED_COLON,
     RESOURCE_ID_IMAGE_MED_DIVIDE
 };
+
+#define COLON 10
+#define SLASH 11
+
+static GBitmap *tinyDigits[12]; // 0-9, : and /
+static GBitmap *medDigits[12];
+
+static GBitmap *minuteHandBitmap, *hourHandBitmap;
+static RotBitmapLayer *minuteHandLayer, *hourHandLayer;
 
 
 bool isSpace(char c) {
@@ -144,73 +148,6 @@ char *trim(char *input) {
     *end = '\0';		// terminate the trimmed string with a
     // null
     return start;
-}
-
-
-#define R_MIN 70
-static void updateHandsLayer(Layer *layer, GContext *ctx) {
-        int m;
-        GPoint p;
-        int32_t a, cosa, sina;
-        GRect rect;
-        
-        graphics_context_set_stroke_color(ctx, GColorWhite);
-        graphics_context_set_fill_color(ctx, GColorWhite);
-        
-        for (m=0; m<60; m++) {
-                a = (m*TRIG_MAX_ANGLE/60 + 3*TRIG_MAX_ANGLE/4)%TRIG_MAX_ANGLE;
-                cosa = cos_lookup(a);
-                sina = sin_lookup(a);
-
-                p.x = center.x + R_MIN * cosa / TRIG_MAX_RATIO;
-                p.y = center.y + R_MIN * sina / TRIG_MAX_RATIO;
-                
-                if (!(m%15)) {
-                        switch (m) {
-                                case 0:
-                                        break;
-                                        
-                                case 15:
-                                        p.x -= 5;
-                                        p.y -= 2;
-                                        rect.origin = p;
-                                        rect.size.w = 11;
-                                        rect.size.h = 5;
-                                        graphics_fill_rect(ctx, rect, 0, GCornerNone);
-                                        break;
-                                        
-                                case 30:
-                                        p.x -= 2;
-                                        p.y -= 5;
-                                        rect.origin = p;
-                                        rect.size.w = 5;
-                                        rect.size.h = 11;
-                                        graphics_fill_rect(ctx, rect, 0, GCornerNone);
-                                        break;
-                                        
-                                case 45:
-                                        p.x -= 6;
-                                        p.y -= 2;
-                                        rect.origin = p;
-                                        rect.size.w = 11;
-                                        rect.size.h = 5;
-                                        graphics_fill_rect(ctx, rect, 0, GCornerNone);
-                                        break;
-                        }
-                } else if (!(m%5)) {
-                        p.x -= 2;
-                        p.y -= 2;
-                        rect.origin = p;
-                        rect.size.w = rect.size.h = 5;
-                        graphics_fill_rect(ctx, rect, 0, GCornerNone);
-                } else {
-                        p.x -= 1;
-                        p.y -= 1;
-                        rect.origin = p;
-                        rect.size.w = rect.size.h = 3;
-                        graphics_fill_rect(ctx, rect, 0, GCornerNone);
-                }
-        }
 }
 
 
@@ -259,13 +196,13 @@ void change_background() {
 		layer_set_hidden(bitmap_layer_get_layer(background_layer), false);
 		layer_mark_dirty(bitmap_layer_get_layer(background_layer));
     }
-
-
+    
 }
 
 static void toggleHands(bool hidden) {
-    layer_set_hidden(hands_layer, hidden);
-}
+	layer_set_hidden((Layer *)minuteHandLayer, hidden);
+	layer_set_hidden((Layer *)hourHandLayer, hidden);
+} 
 
 static void toggleSeconds(bool hidden) {
     layer_set_hidden(bitmap_layer_get_layer(time_digits_layers[5]), hidden);
@@ -299,8 +236,253 @@ static void toggleSeconds(bool hidden) {
     }
 }
 
-static void handle_tick(struct tm *tick_time, TimeUnits units_changed);
+void bluetooth_connection_callback(bool connected) {
+    if (mAppStarted && !connected && mBluetoothVibe) {
+		// vibe!
+		vibes_long_pulse();
+    }
+}
 
+static void set_container_image(BitmapLayer *bmp_layer, const GBitmap *bmp_image, GPoint origin) {
+	GRect frame = (GRect) {
+		.origin = origin,
+		.size = bmp_image->bounds.size
+	};
+	bitmap_layer_set_bitmap(bmp_layer, bmp_image);
+	layer_set_frame(bitmap_layer_get_layer(bmp_layer), frame);
+} 
+
+static void update_battery(BatteryChargeState charge_state) {
+	static GPoint batteryPos = { 69, 84 };
+    batteryPercent = charge_state.charge_percent;
+
+    if (charge_state.is_charging && batteryPercent < 100) {
+		set_container_image(battery_image_layer, battery_bitmap[CHARGING], batteryPos);
+		return;
+    }
+    // APP_LOG(APP_LOG_LEVEL_DEBUG, "Battery Level: %d", batteryPercent);
+
+    if (batteryPercent < 30) {
+		set_container_image(battery_image_layer, battery_bitmap[1], batteryPos);
+    } else if (batteryPercent < 60) {
+		set_container_image(battery_image_layer, battery_bitmap[2], batteryPos);
+    } else if (batteryPercent < 90) {
+		set_container_image(battery_image_layer, battery_bitmap[3], batteryPos);
+    } else {
+		set_container_image(battery_image_layer, battery_bitmap[4], batteryPos);
+    }
+}
+
+
+unsigned short get_display_hour(unsigned short hour) {
+    if (clock_is_24h_style()) {
+		return hour;
+    }
+    unsigned short display_hour = hour % 12;
+    // Converts "0" to "12"
+    return display_hour ? display_hour : 12;
+}
+
+static void update_days(struct tm *tick_time) {
+	static GPoint dateDigitPos[10] = {
+		{27, 94},	// 0
+		{37, 94}, 	// 1
+		{0, 0},		// -
+		{53, 94},	// 3
+		{63, 94}, 	// 4
+		{0, 0},		// -
+		{79, 94},	// 6
+		{89, 94}, 	// 7
+		{99, 94},	// 8
+		{109, 94} 	// 9
+	};
+	int first_digit, second_digit, third_digit, fourth_digit;
+    int month = tick_time->tm_mon + 1;
+    int year = tick_time->tm_year + 1900;
+
+    // APP_LOG(APP_LOG_LEVEL_DEBUG, "year: %d", year%10);
+
+    if (mStyle == 1) {
+		// US date
+		first_digit = month / 10;
+		second_digit = month % 10;
+		third_digit = tick_time->tm_mday / 10;
+		fourth_digit = tick_time->tm_mday % 10;
+    } else {
+		// EU Date
+		first_digit = tick_time->tm_mday / 10;
+		second_digit = tick_time->tm_mday % 10;
+		third_digit = month / 10;
+		fourth_digit = month % 10;
+	}
+
+    set_container_image(date_digits_layers[0], tinyDigits[first_digit], dateDigitPos[0]);
+    set_container_image(date_digits_layers[1], tinyDigits[second_digit], dateDigitPos[1]);
+    // -2
+    set_container_image(date_digits_layers[3], tinyDigits[third_digit], dateDigitPos[3]);
+    set_container_image(date_digits_layers[4], tinyDigits[fourth_digit], dateDigitPos[4]);
+    // -5
+    set_container_image(date_digits_layers[6], tinyDigits[(year / 1000) % 10], dateDigitPos[6]);
+    set_container_image(date_digits_layers[7], tinyDigits[(year / 100) % 10], dateDigitPos[7]);
+    set_container_image(date_digits_layers[8], tinyDigits[(year / 10) % 10], dateDigitPos[8]);
+    set_container_image(date_digits_layers[9], tinyDigits[year % 10], dateDigitPos[9]);
+}
+
+static void update_hours(struct tm *tick_time) {
+	static GPoint hourDigitPos[2] = { {26, 62}, {40, 62} };
+    static char top_text[20] = "";
+    unsigned short display_hour = get_display_hour(tick_time->tm_hour);
+
+    set_container_image(time_digits_layers[0], medDigits[display_hour / 10], hourDigitPos[0]);
+    set_container_image(time_digits_layers[1], medDigits[display_hour % 10], hourDigitPos[1]);
+
+    if (!clock_is_24h_style()) {
+		if (display_hour / 10 == 0) {
+			layer_set_frame(time_layer, GRect(-6, 0, 144, 168));
+			mTimeLayerShifted = true;
+			layer_set_hidden(bitmap_layer_get_layer(time_digits_layers[0]), true);
+		} else {
+			layer_set_frame(time_layer, GRect(0, 0, 144, 168));
+			mTimeLayerShifted = false;
+			layer_set_hidden(bitmap_layer_get_layer(time_digits_layers[0]), false);
+		}
+
+		if (tick_time->tm_hour < 12) {
+			strncpy(top_text, "LOCAL AM", sizeof(top_text));
+		} else {
+			strncpy(top_text, "LOCAL PM", sizeof(top_text));
+		}
+	} else {
+		strncpy(top_text, "LOCAL 24", sizeof(top_text));
+    }
+
+    text_layer_set_text(tiny_top_text, trim(top_text));
+}
+
+static void update_minutes(struct tm *tick_time) {
+	static GPoint minuteDigitPos[2] = { {59, 62}, {73, 62} };
+    if (mVibeMinutes > 0) {
+		if (mVibeMinutesTimer <= 0) {
+			vibes_double_pulse();
+			mVibeMinutesTimer = mVibeMinutes;
+		} else {
+			mVibeMinutesTimer--;
+		}
+    }
+    set_container_image(time_digits_layers[3], medDigits[tick_time->tm_min / 10], minuteDigitPos[0]);
+    set_container_image(time_digits_layers[4], medDigits[tick_time->tm_min % 10], minuteDigitPos[1]);
+}
+
+static void update_seconds(struct tm *tick_time) {
+	static GPoint secondDigitPos[2] = { {92, 62}, {106, 62} };
+    set_container_image(time_digits_layers[6], medDigits[tick_time->tm_sec / 10], secondDigitPos[0]);
+    set_container_image(time_digits_layers[7], medDigits[tick_time->tm_sec % 10], secondDigitPos[1]);
+}
+
+static void update_hands(struct tm *t) {
+	GRect r;
+	int32_t minuteAngle = t->tm_min * TRIG_MAX_ANGLE / 60;
+	int32_t hourAngle = ((t->tm_hour%12)*60 + t->tm_min) * TRIG_MAX_ANGLE / 720;
+
+	r = layer_get_frame((Layer *)minuteHandLayer);
+	r.origin.x = 72 - r.size.w/2 + 56 * cos_lookup((minuteAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
+	r.origin.y = 84 - r.size.h/2 + 56 * sin_lookup((minuteAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
+	layer_set_frame((Layer *)minuteHandLayer, r);
+	rot_bitmap_layer_set_angle(minuteHandLayer, minuteAngle);
+	
+	r = layer_get_frame((Layer *)hourHandLayer);
+	r.origin.x = 72 - r.size.w/2 + 57 * cos_lookup((hourAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
+	r.origin.y = 84 - r.size.h/2 + 57 * sin_lookup((hourAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
+	layer_set_frame((Layer *)hourHandLayer, r);
+	rot_bitmap_layer_set_angle(hourHandLayer, hourAngle);
+}
+
+static void update_zulu_hours(struct tm *tick_time) {
+	static GPoint hourDigitPos[2] = { {26, 94}, {40, 94} };
+    static char label_text[20] = "";
+    unsigned short display_hour = get_display_hour(tick_time->tm_hour);
+
+    set_container_image(zulu_time_digits_layers[0], medDigits[display_hour / 10], hourDigitPos[0]);
+    set_container_image(zulu_time_digits_layers[1], medDigits[display_hour % 10], hourDigitPos[1]);
+
+    if (!clock_is_24h_style()) {
+		if (display_hour / 10 == 0) {
+			layer_set_frame(zulu_time_layer, GRect(-7, 0, 144, 168));
+			layer_set_hidden(bitmap_layer_get_layer(zulu_time_digits_layers[0]), true);
+		} else {
+			layer_set_frame(zulu_time_layer, GRect(0, 0, 144, 168));
+			layer_set_hidden(bitmap_layer_get_layer(zulu_time_digits_layers[0]), false);
+		}
+
+		if (tick_time->tm_hour < 12) {
+			strncpy(label_text, "ZULU AM", sizeof(label_text));
+		} else {
+			strncpy(label_text, "ZULU PM", sizeof(label_text));
+		}
+    } else {
+		strncpy(label_text, "ZULU 24", sizeof(label_text));
+    }
+
+    text_layer_set_text(tiny_bottom_text, trim(label_text));
+}
+
+static void update_zulu_minutes(struct tm *tick_time) {
+	static GPoint minuteDigitPos[2] = { {59, 94}, {73, 94} };
+    set_container_image(zulu_time_digits_layers[3], medDigits[tick_time->tm_min / 10], minuteDigitPos[0]);
+    set_container_image(zulu_time_digits_layers[4], medDigits[tick_time->tm_min % 10], minuteDigitPos[1]);
+}
+
+static void update_zulu_seconds(struct tm *tick_time) {
+	static GPoint secondDigitPos[2] = { {92, 94}, {106, 94} };
+    set_container_image(zulu_time_digits_layers[6], medDigits[tick_time->tm_sec / 10], secondDigitPos[0]);
+    set_container_image(zulu_time_digits_layers[7], medDigits[tick_time->tm_sec % 10], secondDigitPos[1]);
+}
+
+
+static void handle_tick(struct tm *tick_time, TimeUnits units_changed) {
+	time_t local, utc;
+	
+	if (mStyle == 2) {
+		local = time(NULL);
+		utc = local + mTimezoneOffset;
+		zulu_tick_time = *(localtime(&utc));
+		// BEGIN SECTION - Remove this section and the zulu/local time are
+		// the same value?
+		// Edit from Jnm:
+		//		Can't figure out why but this next line is required or zulu_tick_time is not set correctly
+		//		This line can also be replaced with an APP_LOG call to have it working, but psleep fails.
+		tick_time = localtime(&local);
+		// END SECTION
+	}	
+
+    if ((units_changed & DAY_UNIT) && (mStyle < 2)) {
+		update_days(tick_time);
+    }
+    
+    if (units_changed & HOUR_UNIT) {
+		update_hours(tick_time);
+		if (mStyle == 2) {
+			update_zulu_hours(&zulu_tick_time);
+		}
+    }
+
+    if (units_changed & MINUTE_UNIT) {
+		update_minutes(tick_time);
+		if (mHands) {
+			update_hands(tick_time);
+		}
+		if (mStyle == 2) {
+			update_zulu_minutes(&zulu_tick_time);
+		}
+    }
+    
+    if ((units_changed & SECOND_UNIT) && (mSeconds == 1)) {
+		update_seconds(tick_time);
+		if (mStyle == 2) {
+			update_zulu_seconds(&zulu_tick_time);
+		}
+    }
+}
 
 static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tuple, const Tuple * old_tuple, void *context) {
     // APP_LOG(APP_LOG_LEVEL_DEBUG, "TUPLE! %lu : %d", key, new_tuple->value->uint8);
@@ -345,7 +527,7 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 
 		case HANDS_KEY:
 			mHands = new_tuple->value->uint8;
-			toggleHands(mHands);
+            toggleHands(!mHands);
 			break;
 
 		case STYLE_KEY:
@@ -385,246 +567,10 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 	}
 }
 
-void bluetooth_connection_callback(bool connected) {
-    if (mAppStarted && !connected && mBluetoothVibe) {
-		// vibe!
-		vibes_long_pulse();
-    }
-}
-
-static void set_container_image(GBitmap ** bmp_image, BitmapLayer * bmp_layer, const int resource_id, GPoint origin) {
-    GBitmap *old_image = *bmp_image;
-    *bmp_image = gbitmap_create_with_resource(resource_id);
-    GRect frame = (GRect) {
-		.origin = origin,
-		.size = (*bmp_image)->bounds.size
-    };
-    bitmap_layer_set_bitmap(bmp_layer, *bmp_image);
-    layer_set_frame(bitmap_layer_get_layer(bmp_layer), frame);
-    if (old_image != NULL) {
-		gbitmap_destroy(old_image);
-		old_image = NULL;
-    }
-}
-
-static void update_battery(BatteryChargeState charge_state) {
-    batteryPercent = charge_state.charge_percent;
-
-    if (charge_state.is_charging && batteryPercent < 100) {
-		set_container_image(&battery_image, battery_image_layer, BATTERY_IMAGE_RESOURCE_IDS[5], GPoint(69, 84));
-		return;
-    }
-    // APP_LOG(APP_LOG_LEVEL_DEBUG, "Battery Level: %d", batteryPercent);
-
-    if (batteryPercent < 30) {
-		set_container_image(&battery_image, battery_image_layer, BATTERY_IMAGE_RESOURCE_IDS[3], GPoint(69, 84));
-    } else if (batteryPercent < 60) {
-		set_container_image(&battery_image, battery_image_layer, BATTERY_IMAGE_RESOURCE_IDS[2], GPoint(69, 84));
-    } else if (batteryPercent < 90) {
-		set_container_image(&battery_image, battery_image_layer, BATTERY_IMAGE_RESOURCE_IDS[1], GPoint(69, 84));
-    } else {
-		set_container_image(&battery_image, battery_image_layer, BATTERY_IMAGE_RESOURCE_IDS[0], GPoint(69, 84));
-    }
-}
-
-
-unsigned short get_display_hour(unsigned short hour) {
-    if (clock_is_24h_style()) {
-		return hour;
-    }
-    unsigned short display_hour = hour % 12;
-    // Converts "0" to "12"
-    return display_hour ? display_hour : 12;
-}
-
-static void update_days(struct tm *tick_time) {
-    int month = tick_time->tm_mon + 1;
-    int year = tick_time->tm_year + 1900;
-
-    // APP_LOG(APP_LOG_LEVEL_DEBUG, "year: %d", year%10);
-
-    int first_digit = tick_time->tm_mday / 10;
-    int second_digit = tick_time->tm_mday % 10;
-    int third_digit = month / 10;
-    int fourth_digit = month % 10;
-
-    if (mStyle == 1) {
-		// US date
-		first_digit = month / 10;
-		second_digit = month % 10;
-		third_digit = tick_time->tm_mday / 10;
-		fourth_digit = tick_time->tm_mday % 10;
-    }
-
-    set_container_image(&date_digits_images[0], date_digits_layers[0], TINY_IMAGE_RESOURCE_IDS[first_digit], GPoint(27, 94));
-    set_container_image(&date_digits_images[1], date_digits_layers[1], TINY_IMAGE_RESOURCE_IDS[second_digit], GPoint(37, 94));
-    // -2
-    set_container_image(&date_digits_images[3], date_digits_layers[3], TINY_IMAGE_RESOURCE_IDS[third_digit], GPoint(53, 94));
-    set_container_image(&date_digits_images[4], date_digits_layers[4], TINY_IMAGE_RESOURCE_IDS[fourth_digit], GPoint(63, 94));
-    // -5
-    set_container_image(&date_digits_images[6], date_digits_layers[6], TINY_IMAGE_RESOURCE_IDS[year / 1000 % 10], GPoint(79, 94));
-    set_container_image(&date_digits_images[7], date_digits_layers[7], TINY_IMAGE_RESOURCE_IDS[year / 100 % 10], GPoint(89, 94));
-    set_container_image(&date_digits_images[8], date_digits_layers[8], TINY_IMAGE_RESOURCE_IDS[year / 10 % 10], GPoint(99, 94));
-    set_container_image(&date_digits_images[9], date_digits_layers[9], TINY_IMAGE_RESOURCE_IDS[year % 10], GPoint(109, 94));
-}
-
-static void update_hours(struct tm *tick_time) {
-    static char top_text[20] = "";
-    unsigned short display_hour = get_display_hour(tick_time->tm_hour);
-
-    set_container_image(&time_digits_images[0], time_digits_layers[0], MED_IMAGE_RESOURCE_IDS[display_hour / 10], GPoint(26, 62));
-    set_container_image(&time_digits_images[1], time_digits_layers[1], MED_IMAGE_RESOURCE_IDS[display_hour % 10], GPoint(40, 62));
-
-    if (!clock_is_24h_style()) {
-		if (display_hour / 10 == 0) {
-			layer_set_frame(time_layer, GRect(-6, 0, 144, 168));
-			mTimeLayerShifted = true;
-			layer_set_hidden(bitmap_layer_get_layer(time_digits_layers[0]), true);
-		} else {
-			layer_set_frame(time_layer, GRect(0, 0, 144, 168));
-			mTimeLayerShifted = false;
-			layer_set_hidden(bitmap_layer_get_layer(time_digits_layers[0]), false);
-		}
-
-		if (tick_time->tm_hour < 12) {
-			strncpy(top_text, "LOCAL AM", sizeof(top_text));
-		} else {
-			strncpy(top_text, "LOCAL PM", sizeof(top_text));
-		}
-	} else {
-		strncpy(top_text, "LOCAL 24", sizeof(top_text));
-    }
-
-    text_layer_set_text(tiny_top_text, trim(top_text));
-
-}
-
-static void update_minutes(struct tm *tick_time) {
-    if (mVibeMinutes > 0) {
-		if (mVibeMinutesTimer <= 0) {
-			vibes_double_pulse();
-			mVibeMinutesTimer = mVibeMinutes;
-		} else {
-			mVibeMinutesTimer--;
-		}
-    }
-    set_container_image(&time_digits_images[3], time_digits_layers[3], MED_IMAGE_RESOURCE_IDS[tick_time->tm_min / 10], GPoint(59, 62));
-    set_container_image(&time_digits_images[4], time_digits_layers[4], MED_IMAGE_RESOURCE_IDS[tick_time->tm_min % 10], GPoint(73, 62));
-}
-
-static void update_seconds(struct tm *tick_time) {
-    set_container_image(&time_digits_images[6], time_digits_layers[6], MED_IMAGE_RESOURCE_IDS[tick_time->tm_sec / 10], GPoint(92, 62));
-    set_container_image(&time_digits_images[7], time_digits_layers[7], MED_IMAGE_RESOURCE_IDS[tick_time->tm_sec % 10], GPoint(106, 62));
-}
-
-static void update_zulu_hours(struct tm *tick_time) {
-    static char label_text[20] = "";
-    unsigned short display_hour = get_display_hour(tick_time->tm_hour);
-
-    set_container_image(&zulu_time_digits_images[0], zulu_time_digits_layers[0], MED_IMAGE_RESOURCE_IDS[display_hour / 10], GPoint(26, 94));
-    set_container_image(&zulu_time_digits_images[1], zulu_time_digits_layers[1], MED_IMAGE_RESOURCE_IDS[display_hour % 10], GPoint(40, 94));
-
-    if (!clock_is_24h_style()) {
-		if (display_hour / 10 == 0) {
-			layer_set_frame(zulu_time_layer, GRect(-7, 0, 144, 168));
-			layer_set_hidden(bitmap_layer_get_layer(zulu_time_digits_layers[0]), true);
-		} else {
-			layer_set_frame(zulu_time_layer, GRect(0, 0, 144, 168));
-			layer_set_hidden(bitmap_layer_get_layer(zulu_time_digits_layers[0]), false);
-		}
-
-		if (tick_time->tm_hour < 12) {
-			strncpy(label_text, "ZULU AM", sizeof(label_text));
-		} else {
-			strncpy(label_text, "ZULU PM", sizeof(label_text));
-		}
-    } else {
-		strncpy(label_text, "ZULU 24", sizeof(label_text));
-    }
-
-    text_layer_set_text(tiny_bottom_text, trim(label_text));
-}
-
-static void update_zulu_minutes(struct tm *tick_time) {
-    set_container_image(&zulu_time_digits_images[3], zulu_time_digits_layers[3], MED_IMAGE_RESOURCE_IDS[tick_time->tm_min / 10], GPoint(59, 94));
-    set_container_image(&zulu_time_digits_images[4], zulu_time_digits_layers[4], MED_IMAGE_RESOURCE_IDS[tick_time->tm_min % 10], GPoint(73, 94));
-}
-
-static void update_zulu_seconds(struct tm *tick_time) {
-    set_container_image(&zulu_time_digits_images[6], zulu_time_digits_layers[6], MED_IMAGE_RESOURCE_IDS[tick_time->tm_sec / 10], GPoint(92, 94));
-    set_container_image(&zulu_time_digits_images[7], zulu_time_digits_layers[7], MED_IMAGE_RESOURCE_IDS[tick_time->tm_sec % 10], GPoint(106, 94));
-}
-
-
-static void handle_tick(struct tm *tick_time, TimeUnits units_changed) {
-    time_t local = time(NULL);
-    time_t utc = local + mTimezoneOffset;
-    
-    zulu_tick_time = *(localtime(&utc));
-    // BEGIN SECTION - Remove this section and the zulu/local time are
-    // the same value?
-    // Edit from Jnm:
-    //		Can't figure out why but this next line is required or zulu_tick_time is not set correctly
-    //		This line can also be replaced with an APP_LOG call to have it working, but psleep fails.
-    tick_time = localtime(&local);
-    // END SECTION
-    
-    if(mHands) {
-        GRect r;
-        int32_t minuteAngle = tick_time->tm_sec * TRIG_MAX_ANGLE / 60;
-        int32_t hourAngle = ((tick_time->tm_min%12)*60 + tick_time->tm_sec) * TRIG_MAX_ANGLE / 720;
-
-        r = layer_get_frame((Layer *)minuteHandLayer);
-        r.origin.x = 72 - r.size.w/2 + 56 * cos_lookup((minuteAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
-        r.origin.y = 84 - r.size.h/2 + 56 * sin_lookup((minuteAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
-        layer_set_frame((Layer *)minuteHandLayer, r);
-        rot_bitmap_layer_set_angle(minuteHandLayer, minuteAngle);
-        
-        r = layer_get_frame((Layer *)hourHandLayer);
-        r.origin.x = 72 - r.size.w/2 + 57 * cos_lookup((hourAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
-        r.origin.y = 84 - r.size.h/2 + 57 * sin_lookup((hourAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
-        layer_set_frame((Layer *)hourHandLayer, r);
-        rot_bitmap_layer_set_angle(hourHandLayer, hourAngle);
-    }
-
-    if (units_changed & DAY_UNIT && mStyle < 2) {
-		update_days(tick_time);
-    }
-    
-    if (units_changed & HOUR_UNIT) {
-		update_hours(tick_time);
-		if (mStyle == 2) {
-			update_zulu_hours(&zulu_tick_time);
-		}
-		if (mSeconds) {
-			toggleSeconds(false);
-		} else {
-			toggleSeconds(true);
-		}
-    }
-
-    if (units_changed & MINUTE_UNIT) {
-		update_minutes(tick_time);
-		if (mStyle == 2) {
-			update_zulu_minutes(&zulu_tick_time);
-		}
-    }
-    
-    if (units_changed & SECOND_UNIT && mSeconds == 1) {
-		update_seconds(tick_time);
-		if (mStyle == 2) {
-			update_zulu_seconds(&zulu_tick_time);
-		}
-    }
-}
-
-static void window_load(Window * window) {
-    memset(&time_digits_layers, 0, sizeof(time_digits_layers));
-    memset(&time_digits_images, 0, sizeof(time_digits_images));
-    memset(&date_digits_layers, 0, sizeof(date_digits_layers));
-    memset(&date_digits_images, 0, sizeof(date_digits_images));
-
-    Tuplet initial_values[] = {
+static void init(void) {
+	int i;
+	
+	Tuplet initial_values[NUM_CONFIG_KEYS] = {
 		TupletInteger(SECONDS_KEY, 1),
 		TupletInteger(INVERT_KEY, 0),
 		TupletInteger(BLUETOOTHVIBE_KEY, 1),
@@ -635,22 +581,41 @@ static void window_load(Window * window) {
 		TupletInteger(TIMEZONE_OFFSET_KEY, 0)
     };
 
-    app_sync_init(&sync, sync_buffer, sizeof(sync_buffer), initial_values,
-			ARRAY_LENGTH(initial_values),
-			sync_tuple_changed_callback, NULL, NULL);
+	app_message_open(128, 128);
+	app_sync_init(&sync, sync_buffer, sizeof(sync_buffer), initial_values,
+			ARRAY_LENGTH(initial_values), sync_tuple_changed_callback, NULL, NULL);
+
+	window = window_create();
+	window_set_background_color(window, GColorBlack);
+	window_stack_push(window, true);
 
     Layer *window_layer = window_get_root_layer(window);
-    
+
+	// Load digit bitmaps
+	for (i=0; i<12; i++) {
+		tinyDigits[i] = gbitmap_create_with_resource(TINY_IMAGE_RESOURCE_IDS[i]);
+		if (tinyDigits[i] == NULL) {
+			APP_LOG(APP_LOG_LEVEL_DEBUG, "init() - gbitmap_create Failed for tinyDigits[%d]", i);
+		}
+		medDigits[i] = gbitmap_create_with_resource(MED_IMAGE_RESOURCE_IDS[i]);
+		if (medDigits[i] == NULL) {
+			APP_LOG(APP_LOG_LEVEL_DEBUG, "init() - gbitmap_create Failed for medDigits[%d]", i);
+		}
+	}
+	
+	// Load battery bitmaps
+	for (i=0; i<6; i++) {
+		battery_bitmap[i] = gbitmap_create_with_resource(BATTERY_IMAGE_RESOURCE_IDS[i]);
+		if (battery_bitmap[i] == NULL) {
+			APP_LOG(APP_LOG_LEVEL_DEBUG, "init() - gbitmap_create Failed for battery_bitmap[%d]", i);
+		}
+	}
+	
     // BACKGROUND
     background_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND);
     background_layer = bitmap_layer_create(layer_get_frame(window_layer));
     bitmap_layer_set_bitmap(background_layer, background_image);
     layer_add_child(window_layer, bitmap_layer_get_layer(background_layer));
-
-    // HANDS LAYER
-    hands_layer = layer_create(layer_get_frame(window_layer));
-    layer_set_update_proc(hands_layer, updateHandsLayer);
-    layer_add_child(window_layer, hands_layer);        
 
     // TIME LAYER // 
     time_layer = layer_create(layer_get_frame(window_layer));
@@ -659,28 +624,28 @@ static void window_load(Window * window) {
     // TIME
     GRect dummy_frame = { {0, 0}, {0, 0} };
     
-    for (int i = 0; i < TOTAL_TIME_DIGITS; ++i) {
+    for (i = 0; i < TOTAL_TIME_DIGITS; ++i) {
 		time_digits_layers[i] = bitmap_layer_create(dummy_frame);
 		layer_add_child(time_layer, bitmap_layer_get_layer(time_digits_layers[i]));
     }
 
     // TIME COLONS
-    set_container_image(&time_digits_images[2], time_digits_layers[2], MED_IMAGE_RESOURCE_IDS[10], GPoint(54, 68));
-    set_container_image(&time_digits_images[5], time_digits_layers[5], MED_IMAGE_RESOURCE_IDS[10], GPoint(87, 68));
+    set_container_image(time_digits_layers[2], medDigits[COLON], GPoint(54, 68));
+    set_container_image(time_digits_layers[5], medDigits[COLON], GPoint(87, 68));
 
     // ZULU TIME LAYER // 
     zulu_time_layer = layer_create(layer_get_frame(window_layer));
     layer_add_child(window_layer, zulu_time_layer);
 
     // ZULU TIME
-    for (int i = 0; i < TOTAL_TIME_DIGITS; ++i) {
+    for (i = 0; i < TOTAL_TIME_DIGITS; ++i) {
 		zulu_time_digits_layers[i] = bitmap_layer_create(dummy_frame);
 		layer_add_child(zulu_time_layer, bitmap_layer_get_layer(zulu_time_digits_layers[i]));
     }
 
     // ZULU TIME COLONS
-    set_container_image(&zulu_time_digits_images[2], zulu_time_digits_layers[2], MED_IMAGE_RESOURCE_IDS[10], GPoint(54, 100));
-    set_container_image(&zulu_time_digits_images[5], zulu_time_digits_layers[5], MED_IMAGE_RESOURCE_IDS[10], GPoint(87, 100));
+    set_container_image(zulu_time_digits_layers[2], medDigits[COLON], GPoint(54, 100));
+    set_container_image(zulu_time_digits_layers[5], medDigits[COLON], GPoint(87, 100));
 
     // HIDE ZULU INITIALLY
     layer_set_hidden(zulu_time_layer, true);
@@ -690,15 +655,14 @@ static void window_load(Window * window) {
     layer_add_child(window_layer, date_layer);
 
     // DATE
-    for (int i = 0; i < TOTAL_DATE_DIGITS; ++i) {
-	date_digits_layers[i] = bitmap_layer_create(dummy_frame);
-	layer_add_child(date_layer, bitmap_layer_get_layer(date_digits_layers[i]));
+    for (i = 0; i < TOTAL_DATE_DIGITS; ++i) {
+		date_digits_layers[i] = bitmap_layer_create(dummy_frame);
+		layer_add_child(date_layer, bitmap_layer_get_layer(date_digits_layers[i]));
     }
 
     // DATE SEPARATORS
-    set_container_image(&date_digits_images[2], date_digits_layers[2], TINY_IMAGE_RESOURCE_IDS[11], GPoint(47, 94));
-    set_container_image(&date_digits_images[5], date_digits_layers[5], TINY_IMAGE_RESOURCE_IDS[11], GPoint(73, 94));
-
+    set_container_image(date_digits_layers[2], tinyDigits[SLASH], GPoint(47, 94));
+    set_container_image(date_digits_layers[5], tinyDigits[SLASH], GPoint(73, 94));
 
     // BATTERY
     GRect BatteryFrame = (GRect) {
@@ -706,9 +670,8 @@ static void window_load(Window * window) {
 		.size = {.w = 6,.h = 6}
     };
     
-    battery_image = gbitmap_create_with_resource(BATTERY_IMAGE_RESOURCE_IDS[4]);
     battery_image_layer = bitmap_layer_create(BatteryFrame);
-    bitmap_layer_set_bitmap(battery_image_layer, battery_image);
+    bitmap_layer_set_bitmap(battery_image_layer, battery_bitmap[0]);
     layer_add_child(window_layer, bitmap_layer_get_layer(battery_image_layer));
     update_battery(battery_state_service_peek());
 
@@ -736,30 +699,38 @@ static void window_load(Window * window) {
     text_layer_set_text_alignment(tiny_alarm_text, GTextAlignmentCenter);
     layer_add_child(window_layer, text_layer_get_layer(tiny_alarm_text));
 
-	// HANDS
-    minuteHandBitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_HAND_MINUTE);
-    minuteHandLayer = rot_bitmap_layer_create(minuteHandBitmap);
-    rot_bitmap_set_compositing_mode(minuteHandLayer, GCompOpOr);
-    layer_add_child(window_layer, (Layer *)minuteHandLayer);
+    // MINUTE HAND
+	minuteHandBitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_HAND_MINUTE);
+	if (minuteHandBitmap == NULL) {
+		APP_LOG(APP_LOG_LEVEL_DEBUG, "init() - gbitmap_create Failed for minuteHandBitmap");
+	}	
+	minuteHandLayer = rot_bitmap_layer_create(minuteHandBitmap);
+	rot_bitmap_set_compositing_mode(minuteHandLayer, GCompOpOr);
+	layer_add_child(window_layer, (Layer *)minuteHandLayer);
 
-    hourHandBitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_HAND_HOUR);
-    hourHandLayer = rot_bitmap_layer_create(hourHandBitmap);
-    rot_bitmap_set_compositing_mode(hourHandLayer, GCompOpOr);
-    layer_add_child(window_layer, (Layer *)hourHandLayer);
+    // HOUR HAND
+	hourHandBitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_HAND_HOUR);
+	if (hourHandBitmap == NULL) {
+		APP_LOG(APP_LOG_LEVEL_DEBUG, "init() - gbitmap_create Failed for hourHandBitmap");
+	}	
+	hourHandLayer = rot_bitmap_layer_create(hourHandBitmap);
+	rot_bitmap_set_compositing_mode(hourHandLayer, GCompOpOr);
+	layer_add_child(window_layer, (Layer *)hourHandLayer);
 
     // Avoids a blank screen on watch start.
     time_t now = time(NULL);
-    struct tm *tick_time = localtime(&now);
-    handle_tick(tick_time, SECOND_UNIT + MINUTE_UNIT + HOUR_UNIT + DAY_UNIT);
+    handle_tick(localtime(&now), SECOND_UNIT|MINUTE_UNIT|HOUR_UNIT|DAY_UNIT);
 
     mAppStarted = true;
 
     tick_timer_service_subscribe(SECOND_UNIT, handle_tick);
-    battery_state_service_subscribe(&update_battery);
+    battery_state_service_subscribe(update_battery);
     bluetooth_connection_service_subscribe(bluetooth_connection_callback);
 }
 
-static void window_unload(Window * window) {
+static void deinit(void) {
+	int i;
+	
     app_sync_deinit(&sync);
 
     tick_timer_service_unsubscribe();
@@ -770,41 +741,37 @@ static void window_unload(Window * window) {
     bitmap_layer_destroy(background_layer);
     if (background_image != NULL) {
 		gbitmap_destroy(background_image);
-		background_image = NULL;
     }
     
     layer_remove_from_parent(bitmap_layer_get_layer(battery_image_layer));
     bitmap_layer_destroy(battery_image_layer);
     gbitmap_destroy(battery_image);
-    battery_image = NULL;
 
-    for (int i = 0; i < TOTAL_TIME_DIGITS; i++) {
-		layer_remove_from_parent(bitmap_layer_get_layer(time_digits_layers[i]));
-		gbitmap_destroy(time_digits_images[i]);
+    for (i = 0; i < TOTAL_TIME_DIGITS; i++) {
 		bitmap_layer_destroy(time_digits_layers[i]);
-		time_digits_layers[i] = NULL;
-    }
-
-    for (int i = 0; i < TOTAL_TIME_DIGITS; i++) {
-		layer_remove_from_parent(bitmap_layer_get_layer(zulu_time_digits_layers[i]));
-		gbitmap_destroy(zulu_time_digits_images[i]);
 		bitmap_layer_destroy(zulu_time_digits_layers[i]);
-		zulu_time_digits_layers[i] = NULL;
     }
 
-    for (int i = 0; i < TOTAL_DATE_DIGITS; i++) {
-		layer_remove_from_parent(bitmap_layer_get_layer(date_digits_layers[i]));
-		gbitmap_destroy(date_digits_images[i]);
+    for (i = 0; i < TOTAL_DATE_DIGITS; i++) {
 		bitmap_layer_destroy(date_digits_layers[i]);
-		date_digits_layers[i] = NULL;
     }
-    
-    rot_bitmap_layer_destroy(minuteHandLayer);
-    gbitmap_destroy(minuteHandBitmap);
-    rot_bitmap_layer_destroy(hourHandLayer);
-    gbitmap_destroy(hourHandBitmap);
+
+	for (i=0; i<12; i++) {
+		gbitmap_destroy(tinyDigits[i]);
+		gbitmap_destroy(medDigits[i]);
+	}
+
+	for (i=0; i<6; i++) {
+		gbitmap_destroy(battery_bitmap[i]);
+	}
 
     fonts_unload_custom_font(tiny_font);
+
+	rot_bitmap_layer_destroy(minuteHandLayer);
+	rot_bitmap_layer_destroy(hourHandLayer);
+
+	gbitmap_destroy(minuteHandBitmap);
+	gbitmap_destroy(hourHandBitmap);
 
     text_layer_destroy(tiny_top_text);
     text_layer_destroy(tiny_bottom_text);
@@ -813,19 +780,7 @@ static void window_unload(Window * window) {
     layer_destroy(time_layer);
     layer_destroy(zulu_time_layer);
     layer_destroy(date_layer);
-    layer_destroy(hands_layer);
-}
 
-static void init(void) {
-    app_message_open(128, 128);
-    window = window_create();
-    window_set_window_handlers(window, (WindowHandlers) {
-			       .load = window_load,
-			       .unload = window_unload,});
-    window_stack_push(window, true);
-}
-
-static void deinit(void) {
     window_destroy(window);
 }
 
