@@ -385,14 +385,14 @@ static void update_hands(struct tm *t) {
 	int32_t hourAngle = ((t->tm_hour%12)*60 + t->tm_min) * TRIG_MAX_ANGLE / 720;
 
 	r = layer_get_frame((Layer *)minuteHandLayer);
-	r.origin.x = 72 - r.size.w/2 + 56 * cos_lookup((minuteAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
-	r.origin.y = 84 - r.size.h/2 + 56 * sin_lookup((minuteAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
+	r.origin.x = 72 - r.size.w/2 + 57 * cos_lookup((minuteAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
+	r.origin.y = 84 - r.size.h/2 + 57 * sin_lookup((minuteAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
 	layer_set_frame((Layer *)minuteHandLayer, r);
 	rot_bitmap_layer_set_angle(minuteHandLayer, minuteAngle);
 	
 	r = layer_get_frame((Layer *)hourHandLayer);
-	r.origin.x = 72 - r.size.w/2 + 57 * cos_lookup((hourAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
-	r.origin.y = 84 - r.size.h/2 + 57 * sin_lookup((hourAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
+	r.origin.x = 72 - r.size.w/2 + 58 * cos_lookup((hourAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
+	r.origin.y = 84 - r.size.h/2 + 58 * sin_lookup((hourAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
 	layer_set_frame((Layer *)hourHandLayer, r);
 	rot_bitmap_layer_set_angle(hourHandLayer, hourAngle);
 }
