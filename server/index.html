@@ -50,13 +50,10 @@
         </div>
         <hr />
         <h4>Good Vibrations</h4>
-        <p><small>Vibrate every n minutes.</small></p>
+        <p><small>Vibrate every n minutes. <em>(0 to disable)</em></small></p>
         <div class="btn-group" data-toggle="buttons">
           <label class="btn btn-primary">
-            <input type="radio" name="vibeminutes" id="vibeminutes1" value="1"> Yes
-          </label>
-          <label class="btn btn-primary">
-            <input type="radio" name="vibeminutes" id="vibeminutes2" value="0"> No
+            <input type="text" name="vibeminutes" id="vibeminutes1" value="0">
           </label>
         </div>
         <hr />
@@ -201,20 +198,7 @@
         }
         
         
-        if(mVibeMinutes) {
-          $('#vibeminutes1').prop('checked', true);
-          $('#vibeminutes1').parent().addClass('active');
-          
-          $('#vibeminutes2').prop('checked', false);
-          $('#vibeminutes2').parent().removeClass('active');
-        } 
-        else {
-          $('#vibeminutes1').prop('checked', false);
-          $('#vibeminutes1').parent().removeClass('active');
-          
-          $('#vibeminutes2').prop('checked', true);
-          $('#vibeminutes2').parent().addClass('active'); 
-        }
+        $('#vibeminutes1').val(mVibeMinutes);
         
         if(mHands) {
           $('#hands1').prop('checked', true);
@@ -288,7 +272,7 @@
         mSeconds = $('#seconds1').prop('checked') ? 1 : 0;
         mInvert = $('#invert1').prop('checked') ? 1 : 0;
         mBluetoothvibe = $('#bluetoothvibe1').prop('checked') ? 1 : 0;
-        mVibeMinutes = $('#vibeminutes1').prop('checked') ? 1 : 0;
+        mVibeMinutes = $('#vibeminutes1').val();
         mHands = $('#hands1').prop('checked') ? 1 : 0;
         
         mStyle = $('#style1').prop('checked') ? 0 : mStyle;
