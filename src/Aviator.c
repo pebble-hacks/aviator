@@ -1,11 +1,11 @@
 #include <pebble.h>
 
 static int mSeconds;		// Show seconds on clock (0/1)
-static int mInvert;			// Invert colours (0/1)
+static int mInvert;		    // Invert colours (0/1)
 static int mBluetoothVibe;	// Vibrate on bluetooth disconnect (0/1)
 static int mVibeMinutes;	// Vibrate every X minutes
-static int mHands;			// Show clock hands (0/1)
-static int mStyle;			// Date International (0), Date US (1), Local/Zulu (2)
+static int mHands;		    // Show clock hands (0/1)
+static int mStyle;		    // Date International (0), Date US (1), Local/Zulu (2)
 static int mBackground;		// Background Image: Full (0), Simple (1), Minimal (2), None (3)
 
 static int mTimezoneOffset = 0;
@@ -14,8 +14,9 @@ static int mVibeMinutesTimer = 0;
 static bool mAppStarted = false;
 static bool mTimeLayerShifted = false;
 
-static int mAngleMinute = 0;
-static int mAngleHour = 0;
+static GPoint center = { 72, 84 };
+static GBitmap *minuteHandBitmap, *hourHandBitmap;
+static RotBitmapLayer *minuteHandLayer, *hourHandLayer;
 
 static struct tm zulu_tick_time;
 
@@ -70,6 +71,8 @@ static Layer *zulu_time_layer;
 static GBitmap *zulu_time_digits_images[TOTAL_TIME_DIGITS];
 static BitmapLayer *zulu_time_digits_layers[TOTAL_TIME_DIGITS];
 
+static Layer *hands_layer;
+
 static Layer *date_layer;
 
 #define TOTAL_DATE_DIGITS 10	// 00-00-0000
@@ -123,8 +126,6 @@ bool isSpace(char c) {
     }
 }
 
-static Layer *hands_layer;
-
 char *trim(char *input) {
     char *start = input;
     while (isSpace(*start)) {	// trim left
@@ -146,6 +147,73 @@ char *trim(char *input) {
 }
 
 
+#define R_MIN 70
+static void updateHandsLayer(Layer *layer, GContext *ctx) {
+        int m;
+        GPoint p;
+        int32_t a, cosa, sina;
+        GRect rect;
+        
+        graphics_context_set_stroke_color(ctx, GColorWhite);
+        graphics_context_set_fill_color(ctx, GColorWhite);
+        
+        for (m=0; m<60; m++) {
+                a = (m*TRIG_MAX_ANGLE/60 + 3*TRIG_MAX_ANGLE/4)%TRIG_MAX_ANGLE;
+                cosa = cos_lookup(a);
+                sina = sin_lookup(a);
+
+                p.x = center.x + R_MIN * cosa / TRIG_MAX_RATIO;
+                p.y = center.y + R_MIN * sina / TRIG_MAX_RATIO;
+                
+                if (!(m%15)) {
+                        switch (m) {
+                                case 0:
+                                        break;
+                                        
+                                case 15:
+                                        p.x -= 5;
+                                        p.y -= 2;
+                                        rect.origin = p;
+                                        rect.size.w = 11;
+                                        rect.size.h = 5;
+                                        graphics_fill_rect(ctx, rect, 0, GCornerNone);
+                                        break;
+                                        
+                                case 30:
+                                        p.x -= 2;
+                                        p.y -= 5;
+                                        rect.origin = p;
+                                        rect.size.w = 5;
+                                        rect.size.h = 11;
+                                        graphics_fill_rect(ctx, rect, 0, GCornerNone);
+                                        break;
+                                        
+                                case 45:
+                                        p.x -= 6;
+                                        p.y -= 2;
+                                        rect.origin = p;
+                                        rect.size.w = 11;
+                                        rect.size.h = 5;
+                                        graphics_fill_rect(ctx, rect, 0, GCornerNone);
+                                        break;
+                        }
+                } else if (!(m%5)) {
+                        p.x -= 2;
+                        p.y -= 2;
+                        rect.origin = p;
+                        rect.size.w = rect.size.h = 5;
+                        graphics_fill_rect(ctx, rect, 0, GCornerNone);
+                } else {
+                        p.x -= 1;
+                        p.y -= 1;
+                        rect.origin = p;
+                        rect.size.w = rect.size.h = 3;
+                        graphics_fill_rect(ctx, rect, 0, GCornerNone);
+                }
+        }
+}
+
+
 static void remove_invert() {
     if (inverter_layer != NULL) {
 		layer_remove_from_parent(inverter_layer_get_layer(inverter_layer));
@@ -163,7 +231,6 @@ static void set_invert() {
 }
 
 void change_background() {
-    // APP_LOG(APP_LOG_LEVEL_DEBUG, "change_background()");
     if (background_image) {
 		gbitmap_destroy(background_image);
 		background_image = NULL;
@@ -188,13 +255,16 @@ void change_background() {
     }
     
     if (background_image != NULL) {
-		// APP_LOG(APP_LOG_LEVEL_DEBUG, "change_background() not null");
 		bitmap_layer_set_bitmap(background_layer, background_image);
 		layer_set_hidden(bitmap_layer_get_layer(background_layer), false);
 		layer_mark_dirty(bitmap_layer_get_layer(background_layer));
     }
 
 
+}
+
+static void toggleHands(bool hidden) {
+    layer_set_hidden(hands_layer, hidden);
 }
 
 static void toggleSeconds(bool hidden) {
@@ -230,9 +300,7 @@ static void toggleSeconds(bool hidden) {
 }
 
 static void handle_tick(struct tm *tick_time, TimeUnits units_changed);
-//static void update_zulu_hours(struct tm *tick_time);
-//static void update_zulu_minutes(struct tm *tick_time);
-//static void update_zulu_seconds(struct tm *tick_time);
+
 
 static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tuple, const Tuple * old_tuple, void *context) {
     // APP_LOG(APP_LOG_LEVEL_DEBUG, "TUPLE! %lu : %d", key, new_tuple->value->uint8);
@@ -277,7 +345,7 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 
 		case HANDS_KEY:
 			mHands = new_tuple->value->uint8;
-			// /////////////
+			toggleHands(mHands);
 			break;
 
 		case STYLE_KEY:
@@ -419,21 +487,16 @@ static void update_hours(struct tm *tick_time) {
 		}
 
 		if (tick_time->tm_hour < 12) {
-			//snprintf(top_text, sizeof(top_text), "LOCAL %s", "AM");
 			strncpy(top_text, "LOCAL AM", sizeof(top_text));
 		} else {
-			//snprintf(top_text, sizeof(top_text), "LOCAL %s", "PM");
 			strncpy(top_text, "LOCAL PM", sizeof(top_text));
 		}
 	} else {
-		//snprintf(top_text, sizeof(top_text), "LOCAL %s", "24");
 		strncpy(top_text, "LOCAL 24", sizeof(top_text));
     }
 
     text_layer_set_text(tiny_top_text, trim(top_text));
 
-	// Compute hour hand angle : complete round is 12 hours * 60 minutes = 720 minutes
-	mAngleHour = (((tick_time->tm_hour%12)*60+tick_time->tm_min) * TRIG_MAX_ANGLE / 720 + 3 * TRIG_MAX_ANGLE / 4) % TRIG_MAX_ANGLE;
 }
 
 static void update_minutes(struct tm *tick_time) {
@@ -447,46 +510,11 @@ static void update_minutes(struct tm *tick_time) {
     }
     set_container_image(&time_digits_images[3], time_digits_layers[3], MED_IMAGE_RESOURCE_IDS[tick_time->tm_min / 10], GPoint(59, 62));
     set_container_image(&time_digits_images[4], time_digits_layers[4], MED_IMAGE_RESOURCE_IDS[tick_time->tm_min % 10], GPoint(73, 62));
-
-    // Compute minute hand angle
-    mAngleMinute = (tick_time->tm_min * TRIG_MAX_ANGLE / 60 + 3 * TRIG_MAX_ANGLE / 4) % TRIG_MAX_ANGLE;
-    layer_mark_dirty(hands_layer);
 }
 
 static void update_seconds(struct tm *tick_time) {
     set_container_image(&time_digits_images[6], time_digits_layers[6], MED_IMAGE_RESOURCE_IDS[tick_time->tm_sec / 10], GPoint(92, 62));
     set_container_image(&time_digits_images[7], time_digits_layers[7], MED_IMAGE_RESOURCE_IDS[tick_time->tm_sec % 10], GPoint(106, 62));
-
-    // rot_bitmap_layer_increment_angle(minute_hand_layer, 6);
-}
-
-static void update_hands_layer(Layer * layer, GContext * ctx) {
-    int32_t cos_hour, sin_hour, cos_min, sin_min;
-    GPoint p;
-
-    if (mHands) {
-		// Compute hour hand position
-		cos_hour = cos_lookup(mAngleHour);
-		sin_hour = sin_lookup(mAngleHour);
-		p.x = 72 + 59 * cos_hour / TRIG_MAX_RATIO;
-		p.y = 84 + 59 * sin_hour / TRIG_MAX_RATIO;
-
-		// Draw hour hand
-		graphics_context_set_stroke_color(ctx, GColorWhite);
-		graphics_context_set_fill_color(ctx, GColorWhite);
-		graphics_fill_circle(ctx, p, 3);
-
-		// Compute minute hand position
-		cos_min = cos_lookup(mAngleMinute);
-		sin_min = sin_lookup(mAngleMinute);
-		p.x = 72 + 60 * cos_min / TRIG_MAX_RATIO;
-		p.y = 84 + 60 * sin_min / TRIG_MAX_RATIO;
-
-		// Draw minute hand
-		graphics_context_set_fill_color(ctx, GColorBlack);
-		graphics_fill_circle(ctx, p, 2);
-		graphics_draw_circle(ctx, p, 2);
-    }
 }
 
 static void update_zulu_hours(struct tm *tick_time) {
@@ -506,14 +534,11 @@ static void update_zulu_hours(struct tm *tick_time) {
 		}
 
 		if (tick_time->tm_hour < 12) {
-			//snprintf(label_text, sizeof(label_text), "ZULU %s", "AM");
 			strncpy(label_text, "ZULU AM", sizeof(label_text));
 		} else {
-			//snprintf(label_text, sizeof(label_text), "ZULU %s", "PM");
 			strncpy(label_text, "ZULU PM", sizeof(label_text));
 		}
     } else {
-		//snprintf(label_text, sizeof(label_text), "ZULU %s", "24");
 		strncpy(label_text, "ZULU 24", sizeof(label_text));
     }
 
@@ -532,10 +557,10 @@ static void update_zulu_seconds(struct tm *tick_time) {
 
 
 static void handle_tick(struct tm *tick_time, TimeUnits units_changed) {
-	time_t local = time(NULL);
+    time_t local = time(NULL);
     time_t utc = local + mTimezoneOffset;
     
-	zulu_tick_time = *(localtime(&utc));
+    zulu_tick_time = *(localtime(&utc));
     // BEGIN SECTION - Remove this section and the zulu/local time are
     // the same value?
     // Edit from Jnm:
@@ -543,7 +568,24 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed) {
     //		This line can also be replaced with an APP_LOG call to have it working, but psleep fails.
     tick_time = localtime(&local);
     // END SECTION
-	
+    
+    if(mHands) {
+        GRect r;
+        int32_t minuteAngle = tick_time->tm_sec * TRIG_MAX_ANGLE / 60;
+        int32_t hourAngle = ((tick_time->tm_min%12)*60 + tick_time->tm_sec) * TRIG_MAX_ANGLE / 720;
+
+        r = layer_get_frame((Layer *)minuteHandLayer);
+        r.origin.x = 72 - r.size.w/2 + 56 * cos_lookup((minuteAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
+        r.origin.y = 84 - r.size.h/2 + 56 * sin_lookup((minuteAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
+        layer_set_frame((Layer *)minuteHandLayer, r);
+        rot_bitmap_layer_set_angle(minuteHandLayer, minuteAngle);
+        
+        r = layer_get_frame((Layer *)hourHandLayer);
+        r.origin.x = 72 - r.size.w/2 + 57 * cos_lookup((hourAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
+        r.origin.y = 84 - r.size.h/2 + 57 * sin_lookup((hourAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
+        layer_set_frame((Layer *)hourHandLayer, r);
+        rot_bitmap_layer_set_angle(hourHandLayer, hourAngle);
+    }
 
     if (units_changed & DAY_UNIT && mStyle < 2) {
 		update_days(tick_time);
@@ -598,12 +640,17 @@ static void window_load(Window * window) {
 			sync_tuple_changed_callback, NULL, NULL);
 
     Layer *window_layer = window_get_root_layer(window);
-
+    
     // BACKGROUND
     background_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND);
     background_layer = bitmap_layer_create(layer_get_frame(window_layer));
     bitmap_layer_set_bitmap(background_layer, background_image);
     layer_add_child(window_layer, bitmap_layer_get_layer(background_layer));
+
+    // HANDS LAYER
+    hands_layer = layer_create(layer_get_frame(window_layer));
+    layer_set_update_proc(hands_layer, updateHandsLayer);
+    layer_add_child(window_layer, hands_layer);        
 
     // TIME LAYER // 
     time_layer = layer_create(layer_get_frame(window_layer));
@@ -689,9 +736,16 @@ static void window_load(Window * window) {
     text_layer_set_text_alignment(tiny_alarm_text, GTextAlignmentCenter);
     layer_add_child(window_layer, text_layer_get_layer(tiny_alarm_text));
 
-    hands_layer = layer_create(GRect(0, 0, 144, 168));
-    layer_set_update_proc(hands_layer, update_hands_layer);
-    layer_add_child(window_layer, hands_layer);
+	// HANDS
+    minuteHandBitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_HAND_MINUTE);
+    minuteHandLayer = rot_bitmap_layer_create(minuteHandBitmap);
+    rot_bitmap_set_compositing_mode(minuteHandLayer, GCompOpOr);
+    layer_add_child(window_layer, (Layer *)minuteHandLayer);
+
+    hourHandBitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_HAND_HOUR);
+    hourHandLayer = rot_bitmap_layer_create(hourHandBitmap);
+    rot_bitmap_set_compositing_mode(hourHandLayer, GCompOpOr);
+    layer_add_child(window_layer, (Layer *)hourHandLayer);
 
     // Avoids a blank screen on watch start.
     time_t now = time(NULL);
@@ -711,8 +765,6 @@ static void window_unload(Window * window) {
     tick_timer_service_unsubscribe();
     battery_state_service_unsubscribe();
     bluetooth_connection_service_unsubscribe();
-
-    // layer_destroy((Layer*)minute_hand_layer);
 
     layer_remove_from_parent(bitmap_layer_get_layer(background_layer));
     bitmap_layer_destroy(background_layer);
@@ -746,6 +798,11 @@ static void window_unload(Window * window) {
 		bitmap_layer_destroy(date_digits_layers[i]);
 		date_digits_layers[i] = NULL;
     }
+    
+    rot_bitmap_layer_destroy(minuteHandLayer);
+    gbitmap_destroy(minuteHandBitmap);
+    rot_bitmap_layer_destroy(hourHandLayer);
+    gbitmap_destroy(hourHandBitmap);
 
     fonts_unload_custom_font(tiny_font);
 
