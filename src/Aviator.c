@@ -13,6 +13,7 @@ static int mVibeMinutesTimer = 0;
 
 static bool mAppStarted = false;
 static bool mTimeLayerShifted = false;
+static bool mZuluLayerShifted = false;
 
 static struct tm zulu_tick_time;
 
@@ -218,19 +219,28 @@ static void toggleSeconds(bool hidden) {
 		if (mTimeLayerShifted) {
 			// 12hr clock, single digit
 			layer_set_frame(time_layer, GRect(9, 0, 144, 168));
-			layer_set_frame(zulu_time_layer, GRect(9, 0, 144, 168));
 		} else {
 			layer_set_frame(time_layer, GRect(16, 0, 144, 168));
-			layer_set_frame(zulu_time_layer, GRect(16, 0, 144, 168));
 		}
+		if (mZuluLayerShifted) {
+			// 12hr clock, single digit
+			layer_set_frame(zulu_time_layer, GRect(9, 0, 144, 168));
+		} else {
+			layer_set_frame(zulu_time_layer, GRect(16, 0, 144, 168));
+		}        
+        
     } else {
-	// seconds are visible
+        // seconds are visible
 		if (mTimeLayerShifted) {
 			// 12hr clock, single digit
 			layer_set_frame(time_layer, GRect(-7, 0, 144, 168));
-			layer_set_frame(zulu_time_layer, GRect(-7, 0, 144, 168));
 		} else {
 			layer_set_frame(time_layer, GRect(0, 0, 144, 168));
+		}
+		if (mZuluLayerShifted) {
+			// 12hr clock, single digit
+			layer_set_frame(zulu_time_layer, GRect(-7, 0, 144, 168));
+		} else {
 			layer_set_frame(zulu_time_layer, GRect(0, 0, 144, 168));
 		}
     }
@@ -414,10 +424,12 @@ static void update_zulu_hours(struct tm *tick_time) {
 
     if (!clock_is_24h_style()) {
 		if (display_hour / 10 == 0) {
-			layer_set_frame(zulu_time_layer, GRect(-6, 0, 144, 168));
+			layer_set_frame(zulu_time_layer, GRect(-7, 0, 144, 168));
+            mZuluLayerShifted = true;
 			layer_set_hidden(bitmap_layer_get_layer(zulu_time_digits_layers[0]), true);
 		} else {
 			layer_set_frame(zulu_time_layer, GRect(0, 0, 144, 168));
+            mZuluLayerShifted = false;
 			layer_set_hidden(bitmap_layer_get_layer(zulu_time_digits_layers[0]), false);
 		}
 		
