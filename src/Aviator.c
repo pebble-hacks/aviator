@@ -346,6 +346,13 @@ static void update_hours(struct tm *tick_time) {
 			mTimeLayerShifted = false;
 			layer_set_hidden(bitmap_layer_get_layer(time_digits_layers[0]), false);
 		}
+	
+        if(mSeconds) {
+		    toggleSeconds(false);
+        }
+        else {
+		    toggleSeconds(true);
+        }
 
 		if (tick_time->tm_hour < 12) {
 			strncpy(top_text, "LOCAL AM", sizeof(top_text));
@@ -407,12 +414,19 @@ static void update_zulu_hours(struct tm *tick_time) {
 
     if (!clock_is_24h_style()) {
 		if (display_hour / 10 == 0) {
-			layer_set_frame(zulu_time_layer, GRect(-7, 0, 144, 168));
+			layer_set_frame(zulu_time_layer, GRect(-6, 0, 144, 168));
 			layer_set_hidden(bitmap_layer_get_layer(zulu_time_digits_layers[0]), true);
 		} else {
 			layer_set_frame(zulu_time_layer, GRect(0, 0, 144, 168));
 			layer_set_hidden(bitmap_layer_get_layer(zulu_time_digits_layers[0]), false);
 		}
+		
+        if(mSeconds) {
+		    toggleSeconds(false);
+        }
+        else {
+		    toggleSeconds(true);
+        }
 
 		if (tick_time->tm_hour < 12) {
 			strncpy(label_text, "ZULU AM", sizeof(label_text));
