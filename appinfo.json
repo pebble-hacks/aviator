@@ -1,5 +1,5 @@
 {
-    "versionLabel": "1.0.2",
+    "versionLabel": "1.0.3",
     "uuid": "1757a18e-0e30-4389-aeca-7f0ff1391e77",
     "appKeys": {
         "style": 5,
@@ -12,7 +12,7 @@
         "timezoneOffset": 7
     },
     "longName": "Aviator 2.0",
-    "versionCode": 1,
+    "versionCode": 3,
     "capabilities": [
         "configurable"
     ],
@@ -24,7 +24,7 @@
     "resources": {
         "media": [
             {
-                "characterRegex": "[:0-9A-Z ]",
+                "characterRegex": "[:0-9A-Z. ]",
                 "type": "font",
                 "name": "TINY_12",
                 "file": "fonts/visitor2.ttf"
