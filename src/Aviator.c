@@ -1,12 +1,12 @@
 #include <pebble.h>
 
-static int mSeconds;		// Show seconds on clock (0/1)
-static int mInvert;			// Invert colours (0/1)
-static int mBluetoothVibe;	// Vibrate on bluetooth disconnect (0/1)
-static int mVibeMinutes;	// Vibrate every X minutes
-static int mHands;			// Show clock hands (0/1)
-static int mStyle;			// Date International (0), Date US (1), Local/Zulu (2)
-static int mBackground;		// Background Image: Full (0), Simple (1), Minimal (2), None (3)
+static int mSeconds = 1;		// Show seconds on clock (0/1)
+static int mInvert = 0;			// Invert colours (0/1)
+static int mBluetoothVibe = 1;	// Vibrate on bluetooth disconnect (0/1)
+static int mVibeMinutes = 0;	// Vibrate every X minutes
+static int mHands = 1;			// Show clock hands (0/1)
+static int mStyle = 0;			// Date International (0), Date US (1), Local/Zulu (2)
+static int mBackground = 0;		// Background Image: Full (0), Simple (1), Minimal (2), None (3)
 
 static int mTimezoneOffset = 0;
 static int mVibeMinutesTimer = 0;
@@ -597,14 +597,14 @@ static void init(void) {
 	int i;
 	
 	Tuplet initial_values[NUM_CONFIG_KEYS] = {
-		TupletInteger(SECONDS_KEY, 1),
-		TupletInteger(INVERT_KEY, 0),
-		TupletInteger(BLUETOOTHVIBE_KEY, 1),
-		TupletInteger(VIBEMINUTES_KEY, 0),
-		TupletInteger(HANDS_KEY, 1),
-		TupletInteger(STYLE_KEY, 0),
-		TupletInteger(BACKGROUND_KEY, 0),
-		TupletInteger(TIMEZONE_OFFSET_KEY, 0)
+		TupletInteger(SECONDS_KEY, mSeconds),
+		TupletInteger(INVERT_KEY, mInvert),
+		TupletInteger(BLUETOOTHVIBE_KEY, mBluetoothVibe),
+		TupletInteger(VIBEMINUTES_KEY, mVibeMinutes),
+		TupletInteger(HANDS_KEY, mHands),
+		TupletInteger(STYLE_KEY, mStyle),
+		TupletInteger(BACKGROUND_KEY, mBackground),
+		TupletInteger(TIMEZONE_OFFSET_KEY, mTimezoneOffset)
     };
 
 	app_message_open(128, 128);
