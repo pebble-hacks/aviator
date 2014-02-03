@@ -14,6 +14,7 @@ static int mVibeMinutesTimer = 0;
 static bool mAppStarted = false;
 static bool mTimeLayerShifted = false;
 static bool mZuluLayerShifted = false;
+static bool mCharging = false;
 
 static struct tm zulu_tick_time;
 
@@ -247,7 +248,7 @@ static void toggleSeconds(bool hidden) {
 }
 
 void bluetooth_connection_callback(bool connected) {
-    if (mAppStarted && !connected && mBluetoothVibe) {
+    if (mAppStarted && !connected && mBluetoothVibe && !mCharging) {
 		// vibe!
 		vibes_long_pulse();
     }
@@ -263,6 +264,9 @@ static void set_container_image(BitmapLayer *bmp_layer, const GBitmap *bmp_image
 } 
 
 static void update_battery(BatteryChargeState charge_state) {
+	
+	mCharging = charge_state.is_charging;
+	
 	static GPoint batteryPos = { 69, 84 };
     batteryPercent = charge_state.charge_percent;
 
@@ -378,7 +382,7 @@ static void update_hours(struct tm *tick_time) {
 
 static void update_minutes(struct tm *tick_time) {
 	static GPoint minuteDigitPos[2] = { {59, 62}, {73, 62} };
-    if (mVibeMinutes > 0) {
+    if (mVibeMinutes > 0 && !mCharging) {
 		
 		if(tick_time->tm_min%mVibeMinutes==0) {
 			vibes_double_pulse();
@@ -548,6 +552,11 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 
 		case VIBEMINUTES_KEY:
 			mVibeMinutes = new_tuple->value->int32;
+		/* TODO: Handle >59 minutes vibe
+		    if(mVibeMinutes>59) {
+			    mVibeMinutes -= 60;
+            }
+		*/
 			mVibeMinutesTimer = mVibeMinutes;
 			if (mVibeMinutes > 0) {
 				static char label_text[20] = "";
