@@ -1,5 +1,5 @@
 {
-    "versionLabel": "1.0.3",
+    "versionLabel": "1.0.8",
     "uuid": "1757a18e-0e30-4389-aeca-7f0ff1391e77",
     "appKeys": {
         "style": 5,
@@ -12,7 +12,7 @@
         "timezoneOffset": 7
     },
     "longName": "Aviator 2.0",
-    "versionCode": 3,
+    "versionCode": 8,
     "capabilities": [
         "configurable"
     ],
@@ -23,6 +23,12 @@
     },
     "resources": {
         "media": [
+            {
+                "menuIcon": true,
+                "type": "png",
+                "name": "IMAGE_MENU_ICON",
+                "file": "images/menu_icon.png"
+            },
             {
                 "characterRegex": "[:0-9A-Z. ]",
                 "type": "font",

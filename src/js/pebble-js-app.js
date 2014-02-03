@@ -33,15 +33,37 @@ function saveLocalData(config) {
   loadLocalData();
 }
 function loadLocalData() {
-  mConfig.seconds = parseInt(localStorage.getItem("seconds"));
-  mConfig.invert = parseInt(localStorage.getItem("invert"));
-  mConfig.bluetoothvibe = parseInt(localStorage.getItem("bluetoothvibe"));
-  mConfig.vibeminutes = parseInt(localStorage.getItem("vibeminutes"));
-  mConfig.hands = parseInt(localStorage.getItem("hands"));
-  mConfig.style = parseInt(localStorage.getItem("style"));
-  mConfig.background = parseInt(localStorage.getItem("background"));
-  mConfig.timezoneOffset = TimezoneOffsetMinutes();
-  mConfig.configureUrl = "http://www.mirz.com/Aviatorv2/index.html";
+	mConfig.seconds = parseInt(localStorage.getItem("seconds"));
+	mConfig.invert = parseInt(localStorage.getItem("invert"));
+	mConfig.bluetoothvibe = parseInt(localStorage.getItem("bluetoothvibe"));
+	mConfig.vibeminutes = parseInt(localStorage.getItem("vibeminutes"));
+	mConfig.hands = parseInt(localStorage.getItem("hands"));
+	mConfig.style = parseInt(localStorage.getItem("style"));
+	mConfig.background = parseInt(localStorage.getItem("background"));
+	mConfig.timezoneOffset = TimezoneOffsetMinutes();
+	mConfig.configureUrl = "http://www.mirz.com/Aviatorv2/index.html";
+	
+	if(isNaN(mConfig.seconds)) {
+		mConfig.seconds = 1;
+	}
+	if(isNaN(mConfig.invert)) {
+		mConfig.invert = 0;
+	}
+	if(isNaN(mConfig.bluetoothvibe)) {
+		mConfig.bluetoothvibe = 1;
+	}
+	if(isNaN(mConfig.vibeminutes)) {
+		mConfig.vibeminutes = 0;
+	}   
+	if(isNaN(mConfig.hands)) {
+		mConfig.hands = 1;
+	} 
+	if(isNaN(mConfig.style)) {
+		mConfig.style = 0;
+	} 
+	if(isNaN(mConfig.background)) {
+		mConfig.background = 0;
+	} 
 }
 function returnConfigToPebble() {
   console.log("Configuration window returned: " + JSON.stringify(mConfig));

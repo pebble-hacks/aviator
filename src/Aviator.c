@@ -379,12 +379,18 @@ static void update_hours(struct tm *tick_time) {
 static void update_minutes(struct tm *tick_time) {
 	static GPoint minuteDigitPos[2] = { {59, 62}, {73, 62} };
     if (mVibeMinutes > 0) {
+		
+		if(tick_time->tm_min%mVibeMinutes==0) {
+			vibes_double_pulse();
+		}
+		/*
 		if (mVibeMinutesTimer <= 0) {
 			vibes_double_pulse();
 			mVibeMinutesTimer = mVibeMinutes;
 		} else {
 			mVibeMinutesTimer--;
 		}
+		*/
     }
     set_container_image(time_digits_layers[3], medDigits[tick_time->tm_min / 10], minuteDigitPos[0]);
     set_container_image(time_digits_layers[4], medDigits[tick_time->tm_min % 10], minuteDigitPos[1]);
@@ -512,7 +518,9 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed) {
 
 static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tuple, const Tuple * old_tuple, void *context) {
     // APP_LOG(APP_LOG_LEVEL_DEBUG, "TUPLE! %lu : %d", key, new_tuple->value->uint8);
-
+	if(new_tuple==NULL || new_tuple->value==NULL) {
+		return;
+	}
     switch (key) {
 		case SECONDS_KEY:
 			mSeconds = new_tuple->value->uint8;
@@ -543,7 +551,7 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 			mVibeMinutesTimer = mVibeMinutes;
 			if (mVibeMinutes > 0) {
 				static char label_text[20] = "";
-				snprintf(label_text, sizeof(label_text), "CR.AL:%d", mVibeMinutes);
+				snprintf(label_text, sizeof(label_text), "AL:%d", mVibeMinutes);
 				text_layer_set_text(tiny_alarm_text, trim(label_text));
 				layer_set_hidden(text_layer_get_layer(tiny_alarm_text), false);
 			} else {
