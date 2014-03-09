@@ -1,5 +1,5 @@
 {
-    "versionLabel": "1.0.8",
+    "versionLabel": "1.0.9",
     "uuid": "1757a18e-0e30-4389-aeca-7f0ff1391e77",
     "appKeys": {
         "style": 5,
@@ -12,7 +12,7 @@
         "timezoneOffset": 7
     },
     "longName": "Aviator 2.0",
-    "versionCode": 8,
+    "versionCode": 9,
     "capabilities": [
         "configurable"
     ],
@@ -23,6 +23,96 @@
     },
     "resources": {
         "media": [
+            {
+                "type": "png",
+                "name": "IMAGE_BIG_BATTERY_CHARGE",
+                "file": "images/big-battery-charge.png"
+            },
+            {
+                "type": "png",
+                "name": "IMAGE_BIG_BATTERY_100",
+                "file": "images/big-battery-100.png"
+            },
+            {
+                "type": "png",
+                "name": "IMAGE_BIG_BATTERY_75",
+                "file": "images/big-battery-75.png"
+            },
+            {
+                "type": "png",
+                "name": "IMAGE_BIG_BATTERY_50",
+                "file": "images/big-battery-50.png"
+            },
+            {
+                "type": "png",
+                "name": "IMAGE_BIG_BATTERY_25",
+                "file": "images/big-battery-25.png"
+            },
+            {
+                "type": "png",
+                "name": "IMAGE_BIG_BATTERY_0",
+                "file": "images/big-battery-0.png"
+            },
+            {
+                "type": "png",
+                "name": "IMAGE_BIG_DIVIDE",
+                "file": "images/big-divide.png"
+            },
+            {
+                "type": "png",
+                "name": "IMAGE_BIG_COLON",
+                "file": "images/big-colon.png"
+            },
+            {
+                "type": "png",
+                "name": "IMAGE_BIG_9",
+                "file": "images/big-9.png"
+            },
+            {
+                "type": "png",
+                "name": "IMAGE_BIG_8",
+                "file": "images/big-8.png"
+            },
+            {
+                "type": "png",
+                "name": "IMAGE_BIG_7",
+                "file": "images/big-7.png"
+            },
+            {
+                "type": "png",
+                "name": "IMAGE_BIG_6",
+                "file": "images/big-6.png"
+            },
+            {
+                "type": "png",
+                "name": "IMAGE_BIG_5",
+                "file": "images/big-5.png"
+            },
+            {
+                "type": "png",
+                "name": "IMAGE_BIG_4",
+                "file": "images/big-4.png"
+            },
+            {
+                "type": "png",
+                "name": "IMAGE_BIG_3",
+                "file": "images/big-3.png"
+            },
+            {
+                "type": "png",
+                "name": "IMAGE_BIG_2",
+                "file": "images/big-2.png"
+            },
+            {
+                "type": "png",
+                "name": "IMAGE_BIG_1",
+                "file": "images/big-1.png"
+            },
+            {
+                "type": "png",
+                "name": "IMAGE_BIG_0",
+                "file": "images/big-0.png"
+            },
             {
                 "menuIcon": true,
                 "type": "png",
