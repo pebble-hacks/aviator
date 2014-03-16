@@ -6,6 +6,7 @@
         "seconds": 0,
         "invert": 1,
         "bluetoothvibe": 2,
+        "bigmode": 8,
         "background": 6,
         "hands": 4,
         "vibeminutes": 3,

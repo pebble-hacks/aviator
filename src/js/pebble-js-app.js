@@ -29,6 +29,7 @@ function saveLocalData(config) {
   localStorage.setItem("hands", parseInt(config.hands)); 
   localStorage.setItem("style", parseInt(config.style)); 
   localStorage.setItem("background", parseInt(config.background)); 
+  localStorage.setItem("bigmode", parseInt(config.bigmode)); 
   
   loadLocalData();
 }
@@ -41,7 +42,8 @@ function loadLocalData() {
 	mConfig.style = parseInt(localStorage.getItem("style"));
 	mConfig.background = parseInt(localStorage.getItem("background"));
 	mConfig.timezoneOffset = TimezoneOffsetMinutes();
-	mConfig.configureUrl = "http://www.mirz.com/Aviatorv2/index.html";
+	mConfig.bigmode = parseInt(localStorage.getItem("bigmode"));
+	mConfig.configureUrl = "http://www.mirz.com/Aviatorv2/index2.html";
 	
 	if(isNaN(mConfig.seconds)) {
 		mConfig.seconds = 1;
@@ -64,6 +66,9 @@ function loadLocalData() {
 	if(isNaN(mConfig.background)) {
 		mConfig.background = 0;
 	} 
+	if(isNaN(mConfig.bigmode)) {
+		mConfig.bigmode = 0;
+	} 
 }
 function returnConfigToPebble() {
   console.log("Configuration window returned: " + JSON.stringify(mConfig));
@@ -75,7 +80,8 @@ function returnConfigToPebble() {
     "hands":parseInt(mConfig.hands),
     "style":parseInt(mConfig.style),
     "background":parseInt(mConfig.background),
-    "timezoneOffset":TimezoneOffsetMinutes()
+    "timezoneOffset":TimezoneOffsetMinutes(),
+	"bigmode":parseInt(mConfig.bigmode)
   });    
 }
 function TimezoneOffsetMinutes() {

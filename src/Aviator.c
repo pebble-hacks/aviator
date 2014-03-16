@@ -7,7 +7,7 @@ static int mVibeMinutes = 0;	// Vibrate every X minutes
 static int mHands = 1;			// Show clock hands (0/1)
 static int mStyle = 0;			// Date International (0), Date US (1), Local/Zulu (2)
 static int mBackground = 0;		// Background Image: Full (0), Simple (1), Minimal (2), None (3)
-static int mBigMode = 1;        // Big font!
+static int mBigMode = 0;        // Big font!
 
 static int mTimezoneOffset = 0;
 static int mVibeMinutesTimer = 0;
@@ -28,7 +28,8 @@ enum {
     STYLE_KEY = 0x5,
     BACKGROUND_KEY = 0x6,
     TIMEZONE_OFFSET_KEY = 0x7,
-    NUM_CONFIG_KEYS = 0x8
+    BIG_MODE_KEY = 0x8,
+	NUM_CONFIG_KEYS = 0x9
 };
 
 static AppSync sync;
@@ -734,7 +735,7 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 			mHands = new_tuple->value->uint8;
             toggleHands(!mHands);
 			break;
-
+		
 		case STYLE_KEY:
 			mStyle = new_tuple->value->uint8;
 			time_t now = time(NULL);
@@ -772,6 +773,11 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 			handle_tick(ttick_time, SECOND_UNIT + MINUTE_UNIT + HOUR_UNIT + DAY_UNIT);
 
 			break;
+		
+		case BIG_MODE_KEY:
+			mBigMode = new_tuple->value->uint8;
+			toggleBigMode();
+			break;
 	}
 }
 
@@ -786,7 +792,8 @@ static void init(void) {
 		TupletInteger(HANDS_KEY, mHands),
 		TupletInteger(STYLE_KEY, mStyle),
 		TupletInteger(BACKGROUND_KEY, mBackground),
-		TupletInteger(TIMEZONE_OFFSET_KEY, mTimezoneOffset)
+		TupletInteger(TIMEZONE_OFFSET_KEY, mTimezoneOffset),
+		TupletInteger(BIG_MODE_KEY, mBigMode)
     };
 
 	app_message_open(128, 128);
@@ -991,7 +998,7 @@ static void init(void) {
 	rot_bitmap_set_compositing_mode(hourHandLayer, GCompOpOr);
 	layer_add_child(window_layer, (Layer *)hourHandLayer);
 	
-	toggleBigMode();
+	//toggleBigMode();
 
     // Avoids a blank screen on watch start.
     time_t now = time(NULL);
