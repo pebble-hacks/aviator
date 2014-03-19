@@ -15,7 +15,8 @@ Features:
 - Bluetooth vibration on disconnect
 - Vibration timer, configurable in Minutes.
 - Show/Hide clock face minute/hour hands
-- International/US date or Local/Zulu time
+- International/US date or Local/Timezone
 - Background - Full, Simple, Minimal, None
 - Battery status indicator (25%, 50%, 75%, 100%, Charging)
 - Big Mode (for those with poor eyesight)
+- User selectable secondary timezone
