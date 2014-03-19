@@ -1,16 +1,19 @@
 #include <pebble.h>
 
-static int mSeconds = 1;		// Show seconds on clock (0/1)
-static int mInvert = 0;			// Invert colours (0/1)
-static int mBluetoothVibe = 1;	// Vibrate on bluetooth disconnect (0/1)
-static int mVibeMinutes = 0;	// Vibrate every X minutes
-static int mHands = 1;			// Show clock hands (0/1)
-static int mStyle = 0;			// Date International (0), Date US (1), Local/Zulu (2)
-static int mBackground = 0;		// Background Image: Full (0), Simple (1), Minimal (2), None (3)
-static int mBigMode = 0;        // Big font!
+static int mSeconds = 1;		       // Show seconds on clock (0/1)
+static int mInvert = 0;			       // Invert colours (0/1)
+static int mBluetoothVibe = 1;	       // Vibrate on bluetooth disconnect (0/1)
+static int mVibeMinutes = 0;	       // Vibrate every X minutes
+static int mHands = 1;			       // Show clock hands (0/1)
+static int mStyle = 0;			       // Date International (0), Date US (1), Local/Zulu (2)
+static int mBackground = 0;		       // Background Image: Full (0), Simple (1), Minimal (2), None (3)
+static int mBigMode = 0;               // Big font!
+static int mTimezone = 0;              // Selected Timezone for Zulu
 
 static int mTimezoneOffset = 0;
 static int mVibeMinutesTimer = 0;
+
+static char mTimezoneLabel[20] = "ZULU";
 
 static bool mAppStarted = false;
 static bool mTimeLayerShifted = false;
@@ -29,7 +32,8 @@ enum {
     BACKGROUND_KEY = 0x6,
     TIMEZONE_OFFSET_KEY = 0x7,
     BIG_MODE_KEY = 0x8,
-	NUM_CONFIG_KEYS = 0x9
+	TIMEZONE_KEY = 0x9,
+	NUM_CONFIG_KEYS = 0xA
 };
 
 static AppSync sync;
@@ -607,12 +611,15 @@ static void update_zulu_hours(struct tm *tick_time) {
         }
 
 		if (tick_time->tm_hour < 12) {
-			strncpy(label_text, "ZULU AM", sizeof(label_text));
+			//strncpy(label_text, "ZULU AM", sizeof(label_text));
+			snprintf(label_text, sizeof(label_text), "%s AM", mTimezoneLabel);
 		} else {
-			strncpy(label_text, "ZULU PM", sizeof(label_text));
+			//strncpy(label_text, "ZULU PM", sizeof(label_text));
+			snprintf(label_text, sizeof(label_text), "%s PM", mTimezoneLabel);
 		}
     } else {
-		strncpy(label_text, "ZULU 24", sizeof(label_text));
+		//strncpy(label_text, "ZULU 24", sizeof(label_text));
+		snprintf(label_text, sizeof(label_text), "%s 24", mTimezoneLabel);
     }
 
     text_layer_set_text(tiny_bottom_text, trim(label_text));
@@ -773,7 +780,14 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 			handle_tick(ttick_time, SECOND_UNIT + MINUTE_UNIT + HOUR_UNIT + DAY_UNIT);
 
 			break;
+		case TIMEZONE_KEY:
+			snprintf(mTimezoneLabel, sizeof(mTimezoneLabel), "%s", new_tuple->value->cstring);
 		
+			time_t ttnow = time(NULL);
+			struct tm *tttick_time = localtime(&ttnow);
+			handle_tick(tttick_time, SECOND_UNIT + MINUTE_UNIT + HOUR_UNIT + DAY_UNIT);
+		
+			break;
 		case BIG_MODE_KEY:
 			mBigMode = new_tuple->value->uint8;
 			toggleBigMode();
@@ -793,6 +807,7 @@ static void init(void) {
 		TupletInteger(STYLE_KEY, mStyle),
 		TupletInteger(BACKGROUND_KEY, mBackground),
 		TupletInteger(TIMEZONE_OFFSET_KEY, mTimezoneOffset),
+		TupletCString(TIMEZONE_KEY, ""),
 		TupletInteger(BIG_MODE_KEY, mBigMode)
     };
 
