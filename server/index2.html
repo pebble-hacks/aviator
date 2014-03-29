@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+<head>
+	<title>Aviator v2.0 Config</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+	<link href="css/bootstrap-theme.min.css" rel="stylesheet">
+
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="container">
+
+	  <h2>Aviator v2.0</h2>
+      
+      <form id="configure-form" class="form-configure well" action="#" method="POST">
+        <h4>Big Mode</h4>
+        <p><small>Bigger fonts for those of us with poor eyesight.</small></p>
+        <div class="btn-group" data-toggle="buttons">
+          <label class="btn btn-primary">
+            <input type="radio" name="bigmode" id="bigmode1" value="1"> Yes
+          </label>
+          <label class="btn btn-primary">
+            <input type="radio" name="bigmode" id="bigmode2" value="0"> No
+          </label>
+        </div>
+        <hr />      
+        <h4>Seconds</h4>
+        <p><small>Display seconds units on digital clock. When using 'Big Mode', this toggles blinking cursor.</small></p>
+        <div class="btn-group" data-toggle="buttons">
+          <label class="btn btn-primary">
+            <input type="radio" name="seconds" id="seconds1" value="1"> Yes
+          </label>
+          <label class="btn btn-primary">
+            <input type="radio" name="seconds" id="seconds2" value="0"> No
+          </label>
+        </div>
+        <hr />
+        <h4>Invert</h4>
+        <p><small>Invert the colour scheme.</small></p>
+        <div class="btn-group" data-toggle="buttons">
+          <label class="btn btn-primary">
+            <input type="radio" name="invert" id="invert1" value="1"> Yes
+          </label>
+          <label class="btn btn-primary">
+            <input type="radio" name="invert" id="invert2" value="0"> No
+          </label>
+        </div>
+        <hr />
+        <h4>Bluetooth Vibe</h4>
+        <p><small>Vibrate on Bluetooth disconnect.</small></p>
+        <div class="btn-group" data-toggle="buttons">
+          <label class="btn btn-primary">
+            <input type="radio" name="bluetoothvibe" id="bluetoothvibe1" value="1"> Yes
+          </label>
+          <label class="btn btn-primary">
+            <input type="radio" name="bluetoothvibe" id="bluetoothvibe2" value="0"> No
+          </label>
+        </div>
+        <hr />
+        <h4>Good Vibrations</h4>
+        <p><small>Vibrate every n minutes. <em>(0 to disable)</em></small></p>
+        <div class="btn-group" data-toggle="buttons">
+          <label class="btn btn-primary">
+            <input type="text" name="vibeminutes" id="vibeminutes1" value="0">
+          </label>
+        </div>
+        <hr />
+        <h4>Hands</h4>
+        <p><small>Show hands on the clock face.</small></p>
+        <div class="btn-group" data-toggle="buttons">
+          <label class="btn btn-primary">
+            <input type="radio" name="hands" id="hands1" value="1"> Yes
+          </label>
+          <label class="btn btn-primary">
+            <input type="radio" name="hands" id="hands2" value="0"> No
+          </label>
+        </div>
+        <hr />
+        <h4>Style</h4>
+        <p><small>Choose display style.</small></p>
+        <div class="btn-group" data-toggle="buttons">
+          <label class="btn btn-primary">
+            <input type="radio" name="style" id="style1" value="0"> Date
+          </label>
+          <label class="btn btn-primary">
+            <input type="radio" name="style" id="style2" value="1"> Date (US)
+          </label>
+          <label class="btn btn-primary">
+            <input type="radio" name="style" id="style3" value="2"> Local/Timezone
+          </label>
+        </div>
+        <hr />
+        <h4>Timezone</h4>
+        <p><small>Secondary timezone. Requires: Style='Local/Timezone'</small></p>
+        <div class="btn-group" data-toggle="buttons">
+          <label class="btn btn-primary">
+              <select id="timezone">
+                <option value="0">(GMT) Casablanca</option>
+                <option value="0">(GMT) Greenwich Mean Time : Dublin, Edinburgh, Lisbon, London</option>
+                <option value="0">(GMT) Monrovia, Reykjavik</option>
+                <option value="1">(GMT+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna</option>
+                <option value="1">(GMT+01:00) Belgrade, Bratislava, Budapest, Ljubljana, Prague</option>
+                <option value="1">(GMT+01:00) Brussels, Copenhagen, Madrid, Paris</option>
+                <option value="1">(GMT+01:00) Sarajevo, Skopje, Warsaw, Zagreb</option>
+                <option value="1">(GMT+01:00) West Central Africa</option>
+                <option value="2">(GMT+02:00) Amman</option>
+                <option value="2">(GMT+02:00) Athens, Bucharest, Istanbul</option>
+                <option value="2">(GMT+02:00) Beirut</option>
+                <option value="2">(GMT+02:00) Cairo</option>
+                <option value="2">(GMT+02:00) Harare, Pretoria</option>
+                <option value="2">(GMT+02:00) Helsinki, Kyiv, Riga, Sofia, Tallinn, Vilnius</option>
+                <option value="2">(GMT+02:00) Jerusalem</option>
+                <option value="2">(GMT+02:00) Minsk</option>
+                <option value="2">(GMT+02:00) Windhoek</option>
+                <option value="3">(GMT+03:00) Baghdad</option>
+                <option value="3">(GMT+03:00) Kuwait, Riyadh</option>
+                <option value="3">(GMT+03:00) Moscow, St. Petersburg, Volgograd</option>
+                <option value="3">(GMT+03:00) Nairobi</option>
+                <option value="3">(GMT+03:00) Tbilisi</option>
+                <option value="3.5">(GMT+03:30) Tehran</option>
+                <option value="4">(GMT+04:00) Abu Dhabi, Muscat</option>
+                <option value="4">(GMT+04:00) Baku</option>
+                <option value="4">(GMT+04:00) Port Louis</option>
+                <option value="4">(GMT+04:00) Yerevan</option>
+                <option value="4.5">(GMT+04:30) Kabul</option>
+                <option value="5">(GMT+05:00) Ekaterinburg</option>
+                <option value="5">(GMT+05:00) Islamabad, Karachi</option>
+                <option value="5">(GMT+05:00) Tashkent</option>
+                <option value="5.5">(GMT+05:30) Chennai, Kolkata, Mumbai, New Delhi</option>
+                <option value="5.5">(GMT+05:30) Sri Jayawardenepura</option>
+                <option value="5.75">(GMT+05:45) Kathmandu</option>
+                <option value="6">(GMT+06:00) Almaty, Novosibirsk</option>
+                <option value="6">(GMT+06:00) Astana, Dhaka</option>
+                <option value="6.5">(GMT+06:30) Yangon (Rangoon)</option>
+                <option value="7">(GMT+07:00) Bangkok, Hanoi, Jakarta</option>
+                <option value="7">(GMT+07:00) Krasnoyarsk</option>
+                <option value="8">(GMT+08:00) Beijing, Chongqing, Hong Kong, Urumqi</option>
+                <option value="8">(GMT+08:00) Irkutsk, Ulaan Bataar</option>
+                <option value="8">(GMT+08:00) Kuala Lumpur, Singapore</option>
+                <option value="8">(GMT+08:00) Perth</option>
+                <option value="8">(GMT+08:00) Taipei</option>
+                <option value="9">(GMT+09:00) Osaka, Sapporo, Tokyo</option>
+                <option value="9">(GMT+09:00) Seoul</option>
+                <option value="9">(GMT+09:00) Yakutsk</option>
+                <option value="9.5">(GMT+09:30) Adelaide</option>
+                <option value="9.5">(GMT+09:30) Darwin</option>
+                <option value="10">(GMT+10:00) Brisbane</option>
+                <option value="10">(GMT+10:00) Canberra, Melbourne, Sydney</option>
+                <option value="10">(GMT+10:00) Guam, Port Moresby</option>
+                <option value="10">(GMT+10:00) Hobart</option>
+                <option value="10">(GMT+10:00) Vladivostok</option>
+                <option value="11">(GMT+11:00) Magadan, Solomon Is., New Caledonia</option>
+                <option value="12">(GMT+12:00) Auckland, Wellington</option>
+                <option value="12">(GMT+12:00) Fiji, Kamchatka, Marshall Is.</option>
+                <option value="13">(GMT+13:00) Nuku'alofa</option>
+                <option value="-1">(GMT-01:00) Azores</option>
+                <option value="-1">(GMT-01:00) Cape Verde Is.</option>
+                <option value="-2">(GMT-02:00) Mid-Atlantic</option>
+                <option value="-3">(GMT-03:00) Brasilia</option>
+                <option value="-3">(GMT-03:00) Buenos Aires</option>
+                <option value="-3">(GMT-03:00) Georgetown</option>
+                <option value="-3">(GMT-03:00) Greenland</option>
+                <option value="-3">(GMT-03:00) Montevideo</option>
+                <option value="-3.5">(GMT-03:30) Newfoundland</option>
+                <option value="-4">(GMT-04:00) Atlantic Time (Canada)</option>
+                <option value="-4">(GMT-04:00) La Paz</option>
+                <option value="-4">(GMT-04:00) Manaus</option>
+                <option value="-4">(GMT-04:00) Santiago</option>
+                <option value="-4.5">(GMT-04:30) Caracas</option>
+                <option value="-5">(GMT-05:00) Bogota, Lima, Quito, Rio Branco</option>
+                <option value="-5">(GMT-05:00) Eastern Time (US & Canada)</option>
+                <option value="-5">(GMT-05:00) Indiana (East)</option>
+                <option value="-6">(GMT-06:00) Central America</option>
+                <option value="-6">(GMT-06:00) Central Time (US & Canada)</option>
+                <option value="-6">(GMT-06:00) Guadalajara, Mexico City, Monterrey</option>
+                <option value="-6">(GMT-06:00) Saskatchewan</option>
+                <option value="-7">(GMT-07:00) Arizona</option>
+                <option value="-7">(GMT-07:00) Chihuahua, La Paz, Mazatlan</option>
+                <option value="-7">(GMT-07:00) Mountain Time (US & Canada)</option>
+                <option value="-8">(GMT-08:00) Pacific Time (US & Canada)</option>
+                <option value="-8">(GMT-08:00) Tijuana, Baja California</option>
+                <option value="-9">(GMT-09:00) Alaska</option>
+                <option value="-10">(GMT-10:00) Hawaii</option>
+                <option value="-11">(GMT-11:00) Midway Island, Samoa</option>
+                <option value="-12">(GMT-12:00) International Date Line West</option>
+
+              </select>
+          </label>
+        </div>
+        <hr />
+        <h4>Background</h4>
+        <p><small>Change the appearance of the clock face.</small></p>
+        <div class="btn-group" data-toggle="buttons">
+          <label class="btn btn-primary">
+            <input type="radio" name="background" id="background1" value="0"> Full
+          </label>
+          <label class="btn btn-primary">
+            <input type="radio" name="background" id="background2" value="1"> Simple
+          </label>
+          <label class="btn btn-primary">
+            <input type="radio" name="background" id="background3" value="2"> Minimal
+          </label>
+          <label class="btn btn-primary">
+            <input type="radio" name="background" id="background4" value="3"> None
+          </label>
+        </div>
+        <hr />
+        <div class="clearfix">
+          <input class="btn btn-lg btn-primary btn-block" id="save" type="submit" value="Save"/>
+        </div>
+      </form>
+	  </div>
+
+    <div class="footer container">
+    	<p>Aviator v2.0 by <a href="http://twitter.com/orviwan">orviwan</a> and <a href="http://twitter.com/jnmattern">Jnm</a>. Based on a original design by ninthsrw01.</p>
+    </div>
+    
+    <script>
+      var mBigMode;
+      var mSeconds;
+      var mInvert;
+      var mBluetoothvibe;
+      var mVibeMinutes;
+      var mHands;
+      var mStyle;
+      var mBackground;
+      var mTimezone;
+      
+      $().ready(function () {
+      
+        mBigMode = parseInt(localStorage.getItem("bigmode"));      
+        mSeconds = parseInt(localStorage.getItem("seconds"));      
+        mInvert = parseInt(localStorage.getItem("invert"));
+        mBluetoothvibe = parseInt(localStorage.getItem("bluetoothvibe"));
+        mVibeMinutes = parseInt(localStorage.getItem("vibeminutes"));
+        mHands = parseInt(localStorage.getItem("hands"));
+        mStyle = parseInt(localStorage.getItem("style"));
+        mBackground = parseInt(localStorage.getItem("background"));
+        mTimezone = parseInt(localStorage.getItem("timezone"));
+
+        if(isNaN(mBigMode)) {
+          mBigMode = 0;
+        }
+        if(isNaN(mSeconds)) {
+          mSeconds = 1;
+        }
+        if(isNaN(mInvert)) {
+          mInvert = 0;
+        }
+        if(isNaN(mBluetoothvibe)) {
+          mBluetoothvibe = 1;
+        }
+        if(isNaN(mVibeMinutes)) {
+          mVibeMinutes = 0;
+        }   
+        if(isNaN(mHands)) {
+          mHands = 1;
+        } 
+        if(isNaN(mStyle)) {
+          mStyle = 0;
+        } 
+        if(isNaN(mBackground)) {
+          mBackground = 0;
+        }  
+        if(isNaN(mTimezone)) {
+          mTimezone = 0;
+        } 
+        
+        
+        if(mBigMode) {
+          $('#bigmode1').prop('checked', true);
+          $('#bigmode1').parent().addClass('active');
+          
+          $('#bigmode2').prop('checked', false);
+          $('#bigmode2').parent().removeClass('active');
+        } 
+        else {
+          $('#bigmode1').prop('checked', false);
+          $('#bigmode1').parent().removeClass('active');
+          
+          $('#bigmode2').prop('checked', true);
+          $('#bigmode2').parent().addClass('active'); 
+        }  
+        
+        if(mSeconds) {
+          $('#seconds1').prop('checked', true);
+          $('#seconds1').parent().addClass('active');
+          
+          $('#seconds2').prop('checked', false);
+          $('#seconds2').parent().removeClass('active');
+        } 
+        else {
+          $('#seconds1').prop('checked', false);
+          $('#seconds1').parent().removeClass('active');
+          
+          $('#seconds2').prop('checked', true);
+          $('#seconds2').parent().addClass('active'); 
+        }
+        
+        if(mInvert) {
+          $('#invert1').prop('checked', true);
+          $('#invert1').parent().addClass('active');
+          
+          $('#invert2').prop('checked', false);
+          $('#invert2').parent().removeClass('active');
+        } 
+        else {
+          $('#invert1').prop('checked', false);
+          $('#invert1').parent().removeClass('active');
+          
+          $('#invert2').prop('checked', true);
+          $('#invert2').parent().addClass('active'); 
+        }
+        
+        
+        if(mBluetoothvibe) {
+          $('#bluetoothvibe1').prop('checked', true);
+          $('#bluetoothvibe1').parent().addClass('active');
+          
+          $('#bluetoothvibe2').prop('checked', false);
+          $('#bluetoothvibe2').parent().removeClass('active');
+        } 
+        else {
+          $('#bluetoothvibe1').prop('checked', false);
+          $('#bluetoothvibe1').parent().removeClass('active');
+          
+          $('#bluetoothvibe2').prop('checked', true);
+          $('#bluetoothvibe2').parent().addClass('active'); 
+        }
+        
+        
+        $('#vibeminutes1').val(mVibeMinutes);
+        
+        if(mHands) {
+          $('#hands1').prop('checked', true);
+          $('#hands1').parent().addClass('active');
+          
+          $('#hands2').prop('checked', false);
+          $('#hands2').parent().removeClass('active');
+        } 
+        else {
+          $('#hands1').prop('checked', false);
+          $('#hands1').parent().removeClass('active');
+          
+          $('#hands2').prop('checked', true);
+          $('#hands2').parent().addClass('active'); 
+        }
+ 
+        $('#style1').prop('checked', false);
+        $('#style1').parent().removeClass('active');
+        $('#style2').prop('checked', false);
+        $('#style2').parent().removeClass('active');
+        $('#style3').prop('checked', false);
+        $('#style3').parent().removeClass('active');
+
+        switch(mStyle) {
+          case 0:
+            $('#style1').prop('checked', true);
+            $('#style1').parent().addClass('active');
+            break;
+          case 1:
+            $('#style2').prop('checked', true);
+            $('#style2').parent().addClass('active');
+            break;
+          case 2:
+            $('#style3').prop('checked', true);
+            $('#style3').parent().addClass('active');
+            break;      
+        }
+  
+        $('#background1').prop('checked', false);
+        $('#background1').parent().removeClass('active');
+        $('#background2').prop('checked', false);
+        $('#background2').parent().removeClass('active');
+        $('#background3').prop('checked', false);
+        $('#background3').parent().removeClass('active');
+        $('#background4').prop('checked', false);
+        $('#background4').parent().removeClass('active');
+        
+        switch(mBackground) {
+          case 0:
+            $('#background1').prop('checked', true);
+            $('#background1').parent().addClass('active');
+            break;
+          case 1:
+            $('#background2').prop('checked', true);
+            $('#background2').parent().addClass('active');
+            break;
+          case 2:
+            $('#background3').prop('checked', true);
+            $('#background3').parent().addClass('active');
+            break;   
+          case 3:
+            $('#background4').prop('checked', true);
+            $('#background4').parent().addClass('active');
+            break; 
+        }
+        
+        $('#timezone').prop("selectedIndex",mTimezone);
+
+      });
+
+      $("#configure-form").submit(function(e) {  
+
+        mBigMode = $('#bigmode1').prop('checked') ? 1 : 0;
+        mSeconds = $('#seconds1').prop('checked') ? 1 : 0;
+        mInvert = $('#invert1').prop('checked') ? 1 : 0;
+        mBluetoothvibe = $('#bluetoothvibe1').prop('checked') ? 1 : 0;
+        mVibeMinutes = $('#vibeminutes1').val();
+        mHands = $('#hands1').prop('checked') ? 1 : 0;
+        mTimezone = $('#timezone').prop("selectedIndex");
+        
+        mStyle = $('#style1').prop('checked') ? 0 : mStyle;
+        mStyle = $('#style2').prop('checked') ? 1 : mStyle;
+        mStyle = $('#style3').prop('checked') ? 2 : mStyle;
+
+        mBackground = $('#background1').prop('checked') ? 0 : mBackground;
+        mBackground = $('#background2').prop('checked') ? 1 : mBackground;
+        mBackground = $('#background3').prop('checked') ? 2 : mBackground;
+        mBackground = $('#background4').prop('checked') ? 3 : mBackground;
+
+        localStorage.setItem("bigmode", mBigMode);  
+        localStorage.setItem("seconds", mSeconds);  
+        localStorage.setItem("invert", mInvert); 
+        localStorage.setItem("bluetoothvibe", mBluetoothvibe); 
+        localStorage.setItem("vibeminutes", mVibeMinutes); 
+        localStorage.setItem("hands", mHands); 
+        localStorage.setItem("style", mStyle); 
+        localStorage.setItem("background", mBackground); 
+        localStorage.setItem("timezone", mTimezone); 
+        
+        var j = {
+          bigmode : parseInt(mBigMode),
+          seconds : parseInt(mSeconds),
+          invert : parseInt(mInvert),
+          bluetoothvibe : parseInt(mBluetoothvibe),
+          vibeminutes: parseInt(mVibeMinutes),
+          hands: parseInt(mHands),
+          style: parseInt(mStyle),
+          timezone: parseInt(mTimezone),
+          background: parseInt(mBackground)
+        };
+        
+        window.location.href = "pebblejs://close#" + JSON.stringify(j);
+
+        e.preventDefault();
+      });
+  </script>
+</body>
+</html>
