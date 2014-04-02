@@ -650,8 +650,13 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed) {
 	
 	if (mStyle == 2) {
 		local = time(NULL);
+		//APP_LOG(APP_LOG_LEVEL_DEBUG, "local! %lu", (unsigned long)local);
+		//APP_LOG(APP_LOG_LEVEL_DEBUG, "mTimezoneOffset! %i", mTimezoneOffset);
 		utc = local + mTimezoneOffset;
+		//APP_LOG(APP_LOG_LEVEL_DEBUG, "utc! %lu", (unsigned long)utc);
+		
 		zulu_tick_time = *(localtime(&utc));
+		//APP_LOG(APP_LOG_LEVEL_DEBUG, "zulu_tick_time! %lu", (unsigned long)zulu_tick_time);
 		// BEGIN SECTION - Remove this section and the zulu/local time are
 		// the same value?
 		// Edit from Jnm:

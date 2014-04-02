@@ -20,7 +20,7 @@ Pebble.addEventListener("webviewclosed",
 );
 
 function saveLocalData(config) {
-  console.log("loadLocalData() " + JSON.stringify(config));
+  //console.log("loadLocalData() " + JSON.stringify(config));
   
   localStorage.setItem("seconds", parseInt(config.seconds));  
   localStorage.setItem("invert", parseInt(config.invert)); 
@@ -75,7 +75,7 @@ function loadLocalData() {
 	} 
 }
 function returnConfigToPebble() {
-  console.log("Configuration window returned: " + JSON.stringify(mConfig));
+  //console.log("Configuration window returned: " + JSON.stringify(mConfig));
   Pebble.sendAppMessage({
     "seconds":parseInt(mConfig.seconds), 
     "invert":parseInt(mConfig.invert), 
@@ -85,22 +85,42 @@ function returnConfigToPebble() {
     "style":parseInt(mConfig.style),
     "background":parseInt(mConfig.background),
 	"timezone":parseInt(mConfig.timezone),
-    "timezoneOffset":TimezoneOffsetSeconds(),
+    "timezoneOffset":parseInt(TimezoneOffsetSeconds()),
 	"timezoneLabel":getTimezoneNameAndOffset().label,
 	"bigmode":parseInt(mConfig.bigmode)
   });    
 }
 function TimezoneOffsetSeconds() {
-  // Get the number of seconds to add to convert localtime to utc
-  //console.log("Timezone: " + new Date().getTimezoneOffset() * 60);
-  //return new Date().getTimezoneOffset() * 60;
-
+	// Get the number of seconds to add to convert localtime to utc
+	//console.log("Timezone: " + new Date().getTimezoneOffset() * 60);
+	//return new Date().getTimezoneOffset() * 60;
 	var x = getTimezoneNameAndOffset();
-    var totalSeconds = new Date().getTimezoneOffset() + (x.hours * 60) * 60;
-	console.log("Timezone+Offset( " + x.label + "(" + x.hours + ")" + "): " + totalSeconds);
-	return totalSeconds;
 	
+	//console.log("orig UTC: " + new Date().getTimezoneOffset() * 60);
+	//console.log("TimezoneOffsetSeconds: " + (new Date().getTimezoneOffset() + (x.hours * 60) * 60));
+	
+    var now = new Date();
+    var nowUtc = new Date(now.getTime() + (now.getTimezoneOffset() * 60000));	
+	
+	//console.log("UTC: " + nowUtc);
+	//console.log("TimezoneOffsetMiliSeconds: " + (nowUtc.getTimezoneOffset() + (x.hours * 60) * 3600));
+	
+	var mil = x.hours * 3600000;
+	
+	var secondTimezone = new Date(nowUtc.getTime() + mil);
+	//console.log("secondTimezone: " + secondTimezone);
+	
+	//console.log("is DST: " + secondTimezone.dst());
+	var secOff = 0;
+	//if(secondTimezone.dst()) {
+	//  secOff = 1 * 3600000;
+    //}
+	
+    var totalSeconds = ((secondTimezone.getTime() + secOff) - now.getTime()) / 1000;
+	//console.log("totalSeconds: " + totalSeconds);
+	return totalSeconds;
 }
+
 function getTimezoneNameAndOffset() {
 	var hours = 0;
 	var label = '';
@@ -377,3 +397,14 @@ function getTimezoneNameAndOffset() {
 	};
 
 }
+
+Date.prototype.stdTimezoneOffset = function() {
+    var jan = new Date(this.getFullYear(), 0, 1);
+    var jul = new Date(this.getFullYear(), 6, 1);
+    return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+};
+
+Date.prototype.dst = function() {
+    return this.getTimezoneOffset() < this.stdTimezoneOffset();
+};
+
