@@ -1,19 +1,35 @@
 #include <pebble.h>
 
-static int mSeconds = 1;		       // Show seconds on clock (0/1)
-static int mInvert = 0;			       // Invert colours (0/1)
-static int mBluetoothVibe = 1;	       // Vibrate on bluetooth disconnect (0/1)
-static int mVibeMinutes = 0;	       // Vibrate every X minutes
-static int mHands = 1;			       // Show clock hands (0/1)
-static int mStyle = 0;			       // Date International (0), Date US (1), Local/Zulu (2)
-static int mBackground = 0;		       // Background Image: Full (0), Simple (1), Minimal (2), None (3)
-static int mBigMode = 0;               // Big font!
-static int mTimezone = 0;              // Selected Timezone for Zulu
+#define SETTINGS_KEY 99
 
-static int mTimezoneOffset = 0;
+typedef struct persist {
+	int Seconds;                 // Show seconds on clock (0/1)
+	int Invert;                  // Invert colours (0/1)
+	int BluetoothVibe;           // Vibrate on bluetooth disconnect (0/1)
+	int VibeMinutes;             // Vibrate every X minutes
+	int Hands;                   // Show clock hands (0/1)
+	int Style;                   // Date International (0), Date US (1), Local/Zulu (2)
+	int Background;              // Background Image: Full (0), Simple (1), Minimal (2), None (3)
+	int TimezoneOffset;          // Offset from local time in seconds
+	char TimezoneLabel[20];      // Custom label text for bottom clock
+	int BigMode;                 // Big font!
+} __attribute__((__packed__)) persist;
+
+persist settings = {
+	.Seconds = 1,
+	.Invert = 0,
+	.BluetoothVibe = 1,
+	.VibeMinutes = 0,
+	.Hands = 1,
+	.Style = 0,
+	.Background = 0,
+	.TimezoneOffset = 0,
+	.TimezoneLabel = "ZULU",
+	.BigMode = 0
+};
+
 static int mVibeMinutesTimer = 0;
-
-static char mTimezoneLabel[20] = "ZULU";
+static int valueRead, valueWritten;
 
 static bool mAppStarted = false;
 static bool mTimeLayerShifted = false;
@@ -213,7 +229,7 @@ char *trim(char *input) {
 
 
 static void toggleBigMode() {
-	if(mBigMode) {
+	if(settings.BigMode) {
         layer_set_hidden(bitmap_layer_get_layer(battery_image_layer), true);
         layer_set_hidden(bitmap_layer_get_layer(big_battery_image_layer), false);
     
@@ -223,7 +239,7 @@ static void toggleBigMode() {
 		
 		layer_set_hidden(big_time_layer, false);
 		
-		if(mStyle<2) {
+		if(settings.Style<2) {
 			layer_set_hidden(big_zulu_time_layer, true);
 			layer_set_hidden(text_layer_get_layer(tiny_bottom_text), true);
 			layer_set_hidden(big_date_layer, false);
@@ -248,7 +264,7 @@ static void toggleBigMode() {
 		layer_set_hidden(big_zulu_time_layer, true);
 		layer_set_hidden(big_date_layer, true);
         
-		if(mStyle<2) {
+		if(settings.Style<2) {
 			layer_set_hidden(zulu_time_layer, true);
 			layer_set_hidden(text_layer_get_layer(tiny_bottom_text), true);
 			layer_set_hidden(date_layer, false);
@@ -286,7 +302,7 @@ void change_background() {
 		background_image = NULL;
     }
 
-    switch (mBackground) {
+    switch (settings.Background) {
 		case 0:
 			background_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND);
 			break;
@@ -359,7 +375,7 @@ static void toggleSeconds(bool hidden) {
 }
 
 void bluetooth_connection_callback(bool connected) {
-    if (mAppStarted && !connected && mBluetoothVibe && !mCharging) {
+    if (mAppStarted && !connected && settings.BluetoothVibe && !mCharging) {
 		// vibe!
 		vibes_long_pulse();
     }
@@ -440,7 +456,7 @@ static void update_days(struct tm *tick_time) {
 
     // APP_LOG(APP_LOG_LEVEL_DEBUG, "year: %d", year%10);
 
-    if (mStyle == 1) {
+    if (settings.Style == 1) {
 		// US date
 		first_digit = month / 10;
 		second_digit = month % 10;
@@ -453,7 +469,7 @@ static void update_days(struct tm *tick_time) {
 		third_digit = month / 10;
 		fourth_digit = month % 10;
 	}
-	if(mBigMode) {
+	if(settings.BigMode) {
 		set_container_image(big_date_digits_layers[0], medDigits[first_digit], bigdateDigitPos[0]);
 		set_container_image(big_date_digits_layers[1], medDigits[second_digit], bigdateDigitPos[1]);
 		// -2
@@ -506,7 +522,7 @@ static void update_hours(struct tm *tick_time) {
 			layer_set_hidden(bitmap_layer_get_layer(big_time_digits_layers[0]), false);
 		}
 	
-        if(mSeconds) {
+        if(settings.Seconds) {
 		    toggleSeconds(false);
         }
         else {
@@ -528,15 +544,15 @@ static void update_hours(struct tm *tick_time) {
 static void update_minutes(struct tm *tick_time) {
 	static GPoint minuteDigitPos[2] = { {59, 62}, {73, 62} };
 	static GPoint bigminuteDigitPos[2] = { {78, 62}, {99, 62} };
-    if (mVibeMinutes > 0 && !mCharging) {
+    if (settings.VibeMinutes > 0 && !mCharging) {
 		
-		if(tick_time->tm_min%mVibeMinutes==0) {
+		if(tick_time->tm_min%settings.VibeMinutes==0) {
 			vibes_double_pulse();
 		}
 		/*
 		if (mVibeMinutesTimer <= 0) {
 			vibes_double_pulse();
-			mVibeMinutesTimer = mVibeMinutes;
+			mVibeMinutesTimer = settings.VibeMinutes;
 		} else {
 			mVibeMinutesTimer--;
 		}
@@ -553,7 +569,7 @@ static void update_seconds(struct tm *tick_time) {
 	static GPoint secondDigitPos[2] = { {92, 62}, {106, 62} };
     set_container_image(time_digits_layers[6], medDigits[tick_time->tm_sec / 10], secondDigitPos[0]);
     set_container_image(time_digits_layers[7], medDigits[tick_time->tm_sec % 10], secondDigitPos[1]);
-	if(mBigMode) {
+	if(settings.BigMode) {
 		layer_set_hidden(bitmap_layer_get_layer(big_time_digits_layers[2]), tick_time->tm_sec%2);
 	}
 }
@@ -603,7 +619,7 @@ static void update_zulu_hours(struct tm *tick_time) {
 			layer_set_hidden(bitmap_layer_get_layer(big_zulu_time_digits_layers[0]), false);
 		}
 		
-        if(mSeconds) {
+        if(settings.Seconds) {
 		    toggleSeconds(false);
         }
         else {
@@ -612,14 +628,14 @@ static void update_zulu_hours(struct tm *tick_time) {
 
 		if (tick_time->tm_hour < 12) {
 			//strncpy(label_text, "ZULU AM", sizeof(label_text));
-			snprintf(label_text, sizeof(label_text), "%s AM", mTimezoneLabel);
+			snprintf(label_text, sizeof(label_text), "%s AM", settings.TimezoneLabel);
 		} else {
 			//strncpy(label_text, "ZULU PM", sizeof(label_text));
-			snprintf(label_text, sizeof(label_text), "%s PM", mTimezoneLabel);
+			snprintf(label_text, sizeof(label_text), "%s PM", settings.TimezoneLabel);
 		}
     } else {
 		//strncpy(label_text, "ZULU 24", sizeof(label_text));
-		snprintf(label_text, sizeof(label_text), "%s 24", mTimezoneLabel);
+		snprintf(label_text, sizeof(label_text), "%s 24", settings.TimezoneLabel);
     }
 
     text_layer_set_text(tiny_bottom_text, trim(label_text));
@@ -639,7 +655,7 @@ static void update_zulu_seconds(struct tm *tick_time) {
 	static GPoint secondDigitPos[2] = { {92, 94}, {106, 94} };
     set_container_image(zulu_time_digits_layers[6], medDigits[tick_time->tm_sec / 10], secondDigitPos[0]);
     set_container_image(zulu_time_digits_layers[7], medDigits[tick_time->tm_sec % 10], secondDigitPos[1]);
-	if(mBigMode) {
+	if(settings.BigMode) {
 		layer_set_hidden(bitmap_layer_get_layer(big_zulu_time_digits_layers[2]), tick_time->tm_sec%2);
 	}
 }
@@ -648,11 +664,11 @@ static void update_zulu_seconds(struct tm *tick_time) {
 static void handle_tick(struct tm *tick_time, TimeUnits units_changed) {
 	time_t local, utc;
 	
-	if (mStyle == 2) {
+	if (settings.Style == 2) {
 		local = time(NULL);
 		//APP_LOG(APP_LOG_LEVEL_DEBUG, "local! %lu", (unsigned long)local);
-		//APP_LOG(APP_LOG_LEVEL_DEBUG, "mTimezoneOffset! %i", mTimezoneOffset);
-		utc = local + mTimezoneOffset;
+		//APP_LOG(APP_LOG_LEVEL_DEBUG, "settings.TimezoneOffset! %i", settings.TimezoneOffset);
+		utc = local + settings.TimezoneOffset;
 		//APP_LOG(APP_LOG_LEVEL_DEBUG, "utc! %lu", (unsigned long)utc);
 		
 		zulu_tick_time = *(localtime(&utc));
@@ -666,30 +682,30 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed) {
 		// END SECTION
 	}	
 
-    if ((units_changed & DAY_UNIT) && (mStyle < 2)) {
+    if ((units_changed & DAY_UNIT) && (settings.Style < 2)) {
 		update_days(tick_time);
     }
     
     if (units_changed & HOUR_UNIT) {
 		update_hours(tick_time);
-		if (mStyle == 2) {
+		if (settings.Style == 2) {
 			update_zulu_hours(&zulu_tick_time);
 		}
     }
 
     if (units_changed & MINUTE_UNIT) {
 		update_minutes(tick_time);
-		if (mHands) {
+		if (settings.Hands) {
 			update_hands(tick_time);
 		}
-		if (mStyle == 2) {
+		if (settings.Style == 2) {
 			update_zulu_minutes(&zulu_tick_time);
 		}
     }
     
-    if ((units_changed & SECOND_UNIT) && (mSeconds == 1)) {
+    if ((units_changed & SECOND_UNIT) && (settings.Seconds == 1)) {
 		update_seconds(tick_time);
-		if (mStyle == 2) {
+		if (settings.Style == 2) {
 			update_zulu_seconds(&zulu_tick_time);
 		}
     }
@@ -702,9 +718,9 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 	}
     switch (key) {
 		case SECONDS_KEY:
-			mSeconds = new_tuple->value->uint8;
+			settings.Seconds = new_tuple->value->uint8;
 			tick_timer_service_unsubscribe();
-			if (mSeconds) {
+			if (settings.Seconds) {
 				toggleSeconds(false);
 				tick_timer_service_subscribe(SECOND_UNIT, handle_tick);
 			} else {
@@ -715,27 +731,27 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 			
 		case INVERT_KEY:
 			remove_invert();
-			mInvert = new_tuple->value->uint8;
-			if (mInvert) {
+			settings.Invert = new_tuple->value->uint8;
+			if (settings.Invert) {
 				set_invert();
 			}
 			break;
 
 		case BLUETOOTHVIBE_KEY:
-			mBluetoothVibe = new_tuple->value->uint8;
+			settings.BluetoothVibe = new_tuple->value->uint8;
 			break;
 
 		case VIBEMINUTES_KEY:
-			mVibeMinutes = new_tuple->value->int32;
+			settings.VibeMinutes = new_tuple->value->int32;
 		/* TODO: Handle >59 minutes vibe
-		    if(mVibeMinutes>59) {
-			    mVibeMinutes -= 60;
+		    if(settings.VibeMinutes>59) {
+			    settings.VibeMinutes -= 60;
             }
 		*/
-			mVibeMinutesTimer = mVibeMinutes;
-			if (mVibeMinutes > 0) {
+			mVibeMinutesTimer = settings.VibeMinutes;
+			if (settings.VibeMinutes > 0) {
 				static char label_text[20] = "";
-				snprintf(label_text, sizeof(label_text), "AL:%d", mVibeMinutes);
+				snprintf(label_text, sizeof(label_text), "AL:%d", settings.VibeMinutes);
 				text_layer_set_text(tiny_alarm_text, trim(label_text));
 				layer_set_hidden(text_layer_get_layer(tiny_alarm_text), false);
 			} else {
@@ -744,16 +760,16 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 			break;
 
 		case HANDS_KEY:
-			mHands = new_tuple->value->uint8;
-            toggleHands(!mHands);
+			settings.Hands = new_tuple->value->uint8;
+            toggleHands(!settings.Hands);
 			break;
 		
 		case STYLE_KEY:
-			mStyle = new_tuple->value->uint8;
+			settings.Style = new_tuple->value->uint8;
 			time_t now = time(NULL);
 			struct tm *tick_time = localtime(&now);
 			
-			if (mStyle < 2) {
+			if (settings.Style < 2) {
 				layer_set_hidden(zulu_time_layer, true);
 				layer_set_hidden(text_layer_get_layer(tiny_bottom_text), true);
 				layer_set_hidden(date_layer, false);
@@ -764,7 +780,7 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 				layer_set_hidden(text_layer_get_layer(tiny_bottom_text), false);
 				layer_set_hidden(date_layer, true);
 				toggleBigMode();
-				if (mSeconds) {
+				if (settings.Seconds) {
 					handle_tick(tick_time, HOUR_UNIT + MINUTE_UNIT + SECOND_UNIT);
 				} else {
 					handle_tick(tick_time, HOUR_UNIT + MINUTE_UNIT);
@@ -773,12 +789,12 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 			break;
 			
 		case BACKGROUND_KEY:
-			mBackground = new_tuple->value->uint8;
+			settings.Background = new_tuple->value->uint8;
 			change_background();
 			break;
 
 		case TIMEZONE_OFFSET_KEY:
-			mTimezoneOffset = new_tuple->value->int32;
+			settings.TimezoneOffset = new_tuple->value->int32;
 
 			time_t tnow = time(NULL);
 			struct tm *ttick_time = localtime(&tnow);
@@ -786,7 +802,7 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 
 			break;
 		case TIMEZONE_KEY:
-			snprintf(mTimezoneLabel, sizeof(mTimezoneLabel), "%s", new_tuple->value->cstring);
+			snprintf(settings.TimezoneLabel, sizeof(settings.TimezoneLabel), "%s", new_tuple->value->cstring);
 		
 			time_t ttnow = time(NULL);
 			struct tm *tttick_time = localtime(&ttnow);
@@ -794,26 +810,36 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 		
 			break;
 		case BIG_MODE_KEY:
-			mBigMode = new_tuple->value->uint8;
+			settings.BigMode = new_tuple->value->uint8;
 			toggleBigMode();
 			break;
 	}
 }
 
+static void loadPersistentSettings() {	
+	valueRead = persist_read_data(SETTINGS_KEY, &settings, sizeof(settings));
+}
+
+static void savePersistentSettings() {
+	valueWritten = persist_write_data(SETTINGS_KEY, &settings, sizeof(settings));
+}
+
 static void init(void) {
 	int i;
 	
+	loadPersistentSettings();
+	
 	Tuplet initial_values[NUM_CONFIG_KEYS] = {
-		TupletInteger(SECONDS_KEY, mSeconds),
-		TupletInteger(INVERT_KEY, mInvert),
-		TupletInteger(BLUETOOTHVIBE_KEY, mBluetoothVibe),
-		TupletInteger(VIBEMINUTES_KEY, mVibeMinutes),
-		TupletInteger(HANDS_KEY, mHands),
-		TupletInteger(STYLE_KEY, mStyle),
-		TupletInteger(BACKGROUND_KEY, mBackground),
-		TupletInteger(TIMEZONE_OFFSET_KEY, mTimezoneOffset),
+		TupletInteger(SECONDS_KEY, settings.Seconds),
+		TupletInteger(INVERT_KEY, settings.Invert),
+		TupletInteger(BLUETOOTHVIBE_KEY, settings.BluetoothVibe),
+		TupletInteger(VIBEMINUTES_KEY, settings.VibeMinutes),
+		TupletInteger(HANDS_KEY, settings.Hands),
+		TupletInteger(STYLE_KEY, settings.Style),
+		TupletInteger(BACKGROUND_KEY, settings.Background),
+		TupletInteger(TIMEZONE_OFFSET_KEY, settings.TimezoneOffset),
 		TupletCString(TIMEZONE_KEY, ""),
-		TupletInteger(BIG_MODE_KEY, mBigMode)
+		TupletInteger(BIG_MODE_KEY, settings.BigMode)
     };
 
 	app_message_open(128, 128);
@@ -1033,6 +1059,8 @@ static void init(void) {
 
 static void deinit(void) {
 	int i;
+	
+	savePersistentSettings();
 	
     app_sync_deinit(&sync);
 

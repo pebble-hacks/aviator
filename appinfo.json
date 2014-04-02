@@ -1,5 +1,5 @@
 {
-    "versionLabel": "1.0.11",
+    "versionLabel": "1.0.12",
     "uuid": "1757a18e-0e30-4389-aeca-7f0ff1391e77",
     "appKeys": {
         "style": 5,
@@ -14,7 +14,7 @@
         "timezoneOffset": 7
     },
     "longName": "Aviator 2.0",
-    "versionCode": 11,
+    "versionCode": 12,
     "capabilities": [
         "configurable"
     ],
