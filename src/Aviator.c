@@ -1,5 +1,6 @@
 #include <pebble.h>
-
+#include <ctype.h>
+	
 #define SETTINGS_KEY 99
 
 typedef struct persist {
@@ -13,6 +14,7 @@ typedef struct persist {
 	int TimezoneOffset;          // Offset from local time in seconds
 	char TimezoneLabel[20];      // Custom label text for bottom clock
 	int BigMode;                 // Big font!
+    int Dayname;                 // Show the day name
 } __attribute__((__packed__)) persist;
 
 persist settings = {
@@ -25,7 +27,8 @@ persist settings = {
 	.Background = 0,
 	.TimezoneOffset = 0,
 	.TimezoneLabel = "ZULU",
-	.BigMode = 0
+	.BigMode = 0,
+    .Dayname = 0
 };
 
 static int mVibeMinutesTimer = 0;
@@ -49,7 +52,8 @@ enum {
     TIMEZONE_OFFSET_KEY = 0x7,
     BIG_MODE_KEY = 0x8,
 	TIMEZONE_KEY = 0x9,
-	NUM_CONFIG_KEYS = 0xA
+    DAYNAME_KEY = 0xA,
+	NUM_CONFIG_KEYS = 0xB
 };
 
 static AppSync sync;
@@ -227,6 +231,13 @@ char *trim(char *input) {
     return start;
 }
 
+char *upcase(char *str){
+  char *s = str;
+  while (*s) {
+    *s++ = toupper((int)*s);
+  }
+  return str;
+}
 
 static void toggleBigMode() {
 	if(settings.BigMode) {
@@ -241,7 +252,7 @@ static void toggleBigMode() {
 		
 		if(settings.Style<2) {
 			layer_set_hidden(big_zulu_time_layer, true);
-			layer_set_hidden(text_layer_get_layer(tiny_bottom_text), true);
+			layer_set_hidden(text_layer_get_layer(tiny_bottom_text), false); //true);
 			layer_set_hidden(big_date_layer, false);
 		}
 		else {
@@ -266,7 +277,7 @@ static void toggleBigMode() {
         
 		if(settings.Style<2) {
 			layer_set_hidden(zulu_time_layer, true);
-			layer_set_hidden(text_layer_get_layer(tiny_bottom_text), true);
+			layer_set_hidden(text_layer_get_layer(tiny_bottom_text), false); //true);
 			layer_set_hidden(date_layer, false);
 		}
 		else {
@@ -499,6 +510,7 @@ static void update_hours(struct tm *tick_time) {
 	static GPoint bighourDigitPos[2] = { {27, 62}, {48, 62} };
 	
     static char top_text[20] = "";
+    static char bottom_text[20] = "";
     unsigned short display_hour = get_display_hour(tick_time->tm_hour);
 
     set_container_image(time_digits_layers[0], medDigits[display_hour / 10], hourDigitPos[0]);
@@ -537,8 +549,17 @@ static void update_hours(struct tm *tick_time) {
 	} else {
 		strncpy(top_text, "LOCAL 24", sizeof(top_text));
     }
-
+    
+    //day name
+    if(settings.Dayname) {
+        strftime(bottom_text,
+                   sizeof(bottom_text),
+                   "%A",
+                   tick_time);
+        text_layer_set_text(tiny_bottom_text, trim(upcase(bottom_text)));
+    }
     text_layer_set_text(tiny_top_text, trim(top_text));
+    
 }
 
 static void update_minutes(struct tm *tick_time) {
@@ -712,7 +733,7 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed) {
 }
 
 static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tuple, const Tuple * old_tuple, void *context) {
-    // APP_LOG(APP_LOG_LEVEL_DEBUG, "TUPLE! %lu : %d", key, new_tuple->value->uint8);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "TUPLE! %lu : %d", key, new_tuple->value->uint8);
 	if(new_tuple==NULL || new_tuple->value==NULL) {
 		return;
 	}
@@ -771,7 +792,7 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 			
 			if (settings.Style < 2) {
 				layer_set_hidden(zulu_time_layer, true);
-				layer_set_hidden(text_layer_get_layer(tiny_bottom_text), true);
+				layer_set_hidden(text_layer_get_layer(tiny_bottom_text), false); //true);
 				layer_set_hidden(date_layer, false);
 				toggleBigMode();
 				handle_tick(tick_time, DAY_UNIT);
@@ -813,6 +834,15 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 			settings.BigMode = new_tuple->value->uint8;
 			toggleBigMode();
 			break;
+        case DAYNAME_KEY:
+			settings.Dayname = new_tuple->value->uint8;
+		
+			APP_LOG(APP_LOG_LEVEL_DEBUG, "DAYNAME!: %d", settings.Dayname);
+		
+			time_t ttttnow = time(NULL);
+			struct tm *ttttick_time = localtime(&ttttnow);
+			handle_tick(ttttick_time, HOUR_UNIT);
+			break;
 	}
 }
 
@@ -839,7 +869,8 @@ static void init(void) {
 		TupletInteger(BACKGROUND_KEY, settings.Background),
 		TupletInteger(TIMEZONE_OFFSET_KEY, settings.TimezoneOffset),
 		TupletCString(TIMEZONE_KEY, ""),
-		TupletInteger(BIG_MODE_KEY, settings.BigMode)
+		TupletInteger(BIG_MODE_KEY, settings.BigMode),
+        TupletInteger(DAYNAME_KEY, settings.Dayname)
     };
 
 	app_message_open(128, 128);
@@ -1019,7 +1050,7 @@ static void init(void) {
     text_layer_set_text_alignment(tiny_bottom_text, GTextAlignmentCenter);
     layer_add_child(bottom_layer, text_layer_get_layer(tiny_bottom_text));
 
-    tiny_alarm_text = text_layer_create(GRect(0, 117, 144, 14));
+    tiny_alarm_text = text_layer_create(GRect(0, 119, 144, 14));
     text_layer_set_background_color(tiny_alarm_text, GColorClear);
     text_layer_set_text_color(tiny_alarm_text, GColorWhite);
     text_layer_set_font(tiny_alarm_text, tiny_font);

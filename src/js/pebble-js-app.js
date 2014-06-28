@@ -20,7 +20,7 @@ Pebble.addEventListener("webviewclosed",
 );
 
 function saveLocalData(config) {
-  //console.log("loadLocalData() " + JSON.stringify(config));
+  console.log("loadLocalData() " + JSON.stringify(config));
   
   localStorage.setItem("seconds", parseInt(config.seconds));  
   localStorage.setItem("invert", parseInt(config.invert)); 
@@ -31,6 +31,7 @@ function saveLocalData(config) {
   localStorage.setItem("background", parseInt(config.background)); 
   localStorage.setItem("timezone", parseInt(config.timezone)); 
   localStorage.setItem("bigmode", parseInt(config.bigmode)); 
+  localStorage.setItem("dayname", parseInt(config.dayname)); 
   
   loadLocalData();
 }
@@ -44,7 +45,8 @@ function loadLocalData() {
 	mConfig.background = parseInt(localStorage.getItem("background"));
 	mConfig.timezone = parseInt(localStorage.getItem("timezone"));
 	mConfig.bigmode = parseInt(localStorage.getItem("bigmode"));
-	mConfig.configureUrl = "http://www.mirz.com/Aviatorv2/index2.html";
+	mConfig.dayname = parseInt(localStorage.getItem("dayname"));
+	mConfig.configureUrl = "http://www.mirz.com/Aviatorv2/index3.html";
 	
 	if(isNaN(mConfig.seconds)) {
 		mConfig.seconds = 1;
@@ -73,6 +75,9 @@ function loadLocalData() {
 	if(isNaN(mConfig.bigmode)) {
 		mConfig.bigmode = 0;
 	} 
+	if(isNaN(mConfig.dayname)) {
+		mConfig.dayname = 0;
+	} 
 }
 function returnConfigToPebble() {
   //console.log("Configuration window returned: " + JSON.stringify(mConfig));
@@ -87,7 +92,8 @@ function returnConfigToPebble() {
 	"timezone":parseInt(mConfig.timezone),
     "timezoneOffset":parseInt(TimezoneOffsetSeconds()),
 	"timezoneLabel":getTimezoneNameAndOffset().label,
-	"bigmode":parseInt(mConfig.bigmode)
+	"bigmode":parseInt(mConfig.bigmode),
+	"dayname":parseInt(mConfig.dayname)
   });    
 }
 function TimezoneOffsetSeconds() {
