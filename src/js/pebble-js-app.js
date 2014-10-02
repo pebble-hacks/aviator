@@ -80,7 +80,21 @@ function loadLocalData() {
 	} 
 }
 function returnConfigToPebble() {
-  //console.log("Configuration window returned: " + JSON.stringify(mConfig));
+  console.log("Configuration window returned: " + JSON.stringify({
+    "seconds":parseInt(mConfig.seconds), 
+    "invert":parseInt(mConfig.invert), 
+    "bluetoothvibe":parseInt(mConfig.bluetoothvibe), 
+    "vibeminutes":parseInt(mConfig.vibeminutes),
+    "hands":parseInt(mConfig.hands),
+    "style":parseInt(mConfig.style),
+    "background":parseInt(mConfig.background),
+	"timezone":parseInt(mConfig.timezone),
+    "timezoneOffset":parseInt(TimezoneOffsetSeconds()),
+	"timezoneLabel":getTimezoneNameAndOffset().label,
+	"bigmode":parseInt(mConfig.bigmode),
+	"dayname":parseInt(mConfig.dayname)
+  }));
+	
   Pebble.sendAppMessage({
     "seconds":parseInt(mConfig.seconds), 
     "invert":parseInt(mConfig.invert), 
@@ -94,7 +108,7 @@ function returnConfigToPebble() {
 	"timezoneLabel":getTimezoneNameAndOffset().label,
 	"bigmode":parseInt(mConfig.bigmode),
 	"dayname":parseInt(mConfig.dayname)
-  });    
+  });   
 }
 function TimezoneOffsetSeconds() {
 	// Get the number of seconds to add to convert localtime to utc

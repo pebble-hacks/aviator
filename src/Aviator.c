@@ -51,13 +51,14 @@ enum {
     BACKGROUND_KEY = 0x6,
     TIMEZONE_OFFSET_KEY = 0x7,
     BIG_MODE_KEY = 0x8,
-	TIMEZONE_KEY = 0x9,
+	  TIMEZONE_KEY = 0x9,
     DAYNAME_KEY = 0xA,
-	NUM_CONFIG_KEYS = 0xB
+    TIMEZONE_LABEL_KEY = 0xB,	
+    NUM_CONFIG_KEYS = 0xC
 };
 
 static AppSync sync;
-static uint8_t sync_buffer[128];
+static uint8_t sync_buffer[256];
 
 static uint8_t batteryPercent;
 
@@ -658,7 +659,7 @@ static void update_zulu_hours(struct tm *tick_time) {
 		//strncpy(label_text, "ZULU 24", sizeof(label_text));
 		snprintf(label_text, sizeof(label_text), "%s 24", settings.TimezoneLabel);
     }
-
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "ZULU HOURS: %s", settings.TimezoneLabel);
     text_layer_set_text(tiny_bottom_text, trim(label_text));
 }
 
@@ -822,8 +823,10 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 			handle_tick(ttick_time, SECOND_UNIT + MINUTE_UNIT + HOUR_UNIT + DAY_UNIT);
 
 			break;
-		case TIMEZONE_KEY:
+		case TIMEZONE_LABEL_KEY:
+			APP_LOG(APP_LOG_LEVEL_DEBUG, "ZULU HOURS1: %s", new_tuple->value->cstring);
 			snprintf(settings.TimezoneLabel, sizeof(settings.TimezoneLabel), "%s", new_tuple->value->cstring);
+			APP_LOG(APP_LOG_LEVEL_DEBUG, "ZULU HOURS2: %s", settings.TimezoneLabel);
 		
 			time_t ttnow = time(NULL);
 			struct tm *tttick_time = localtime(&ttnow);
@@ -869,11 +872,12 @@ static void init(void) {
 		TupletInteger(BACKGROUND_KEY, settings.Background),
 		TupletInteger(TIMEZONE_OFFSET_KEY, settings.TimezoneOffset),
 		TupletCString(TIMEZONE_KEY, ""),
+		TupletCString(TIMEZONE_LABEL_KEY, ""),
 		TupletInteger(BIG_MODE_KEY, settings.BigMode),
         TupletInteger(DAYNAME_KEY, settings.Dayname)
     };
 
-	app_message_open(128, 128);
+	app_message_open(256, 256);
 	app_sync_init(&sync, sync_buffer, sizeof(sync_buffer), initial_values,
 			ARRAY_LENGTH(initial_values), sync_tuple_changed_callback, NULL, NULL);
 
