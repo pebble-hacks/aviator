@@ -1,315 +1,320 @@
 {
-    "appKeys": {
-        "background": 6,
-        "bigmode": 8,
-        "bluetoothvibe": 2,
-        "dayname": 10,
-        "hands": 4,
-        "invert": 1,
-        "seconds": 0,
-        "style": 5,
-        "timezone": 9,
-        "timezoneLabel": 11,
-        "timezoneOffset": 7,
-        "vibeminutes": 3
-    },
-    "capabilities": [
-        "configurable"
-    ],
-    "companyName": "orviwan",
-    "longName": "Aviator 2.0",
-    "projectType": "native",
-    "resources": {
-        "media": [
-            {
-                "file": "images/menu_icon.png",
-                "menuIcon": true,
-                "name": "IMAGE_MENU_ICON",
-                "type": "png"
-            },
-            {
-                "file": "images/big-7.png",
-                "name": "IMAGE_BIG_7",
-                "type": "png"
-            },
-            {
-                "file": "images/big-6.png",
-                "name": "IMAGE_BIG_6",
-                "type": "png"
-            },
-            {
-                "file": "images/big-5.png",
-                "name": "IMAGE_BIG_5",
-                "type": "png"
-            },
-            {
-                "file": "images/big-4.png",
-                "name": "IMAGE_BIG_4",
-                "type": "png"
-            },
-            {
-                "file": "images/big-3.png",
-                "name": "IMAGE_BIG_3",
-                "type": "png"
-            },
-            {
-                "file": "images/big-2.png",
-                "name": "IMAGE_BIG_2",
-                "type": "png"
-            },
-            {
-                "file": "images/big-1.png",
-                "name": "IMAGE_BIG_1",
-                "type": "png"
-            },
-            {
-                "file": "images/big-0.png",
-                "name": "IMAGE_BIG_0",
-                "type": "png"
-            },
-            {
-                "characterRegex": "[:0-9A-Z. -+]",
-                "file": "fonts/visitor2.ttf",
-                "name": "TINY_12",
-                "type": "font"
-            },
-            {
-                "file": "images/tiny-9.png",
-                "name": "IMAGE_TINY_9",
-                "type": "png"
-            },
-            {
-                "file": "images/tiny-8.png",
-                "name": "IMAGE_TINY_8",
-                "type": "png"
-            },
-            {
-                "file": "images/tiny-7.png",
-                "name": "IMAGE_TINY_7",
-                "type": "png"
-            },
-            {
-                "file": "images/tiny-6.png",
-                "name": "IMAGE_TINY_6",
-                "type": "png"
-            },
-            {
-                "file": "images/tiny-5.png",
-                "name": "IMAGE_TINY_5",
-                "type": "png"
-            },
-            {
-                "file": "images/tiny-4.png",
-                "name": "IMAGE_TINY_4",
-                "type": "png"
-            },
-            {
-                "file": "images/tiny-3.png",
-                "name": "IMAGE_TINY_3",
-                "type": "png"
-            },
-            {
-                "file": "images/tiny-2.png",
-                "name": "IMAGE_TINY_2",
-                "type": "png"
-            },
-            {
-                "file": "images/tiny-1.png",
-                "name": "IMAGE_TINY_1",
-                "type": "png"
-            },
-            {
-                "file": "images/tiny-0.png",
-                "name": "IMAGE_TINY_0",
-                "type": "png"
-            },
-            {
-                "file": "images/tiny-colon.png",
-                "name": "IMAGE_TINY_COLON",
-                "type": "png"
-            },
-            {
-                "file": "images/tiny-divide.png",
-                "name": "IMAGE_TINY_DIVIDE",
-                "type": "png"
-            },
-            {
-                "file": "images/med-9.png",
-                "name": "IMAGE_MED_9",
-                "type": "png"
-            },
-            {
-                "file": "images/med-8.png",
-                "name": "IMAGE_MED_8",
-                "type": "png"
-            },
-            {
-                "file": "images/med-7.png",
-                "name": "IMAGE_MED_7",
-                "type": "png"
-            },
-            {
-                "file": "images/med-6.png",
-                "name": "IMAGE_MED_6",
-                "type": "png"
-            },
-            {
-                "file": "images/med-5.png",
-                "name": "IMAGE_MED_5",
-                "type": "png"
-            },
-            {
-                "file": "images/med-4.png",
-                "name": "IMAGE_MED_4",
-                "type": "png"
-            },
-            {
-                "file": "images/med-3.png",
-                "name": "IMAGE_MED_3",
-                "type": "png"
-            },
-            {
-                "file": "images/med-2.png",
-                "name": "IMAGE_MED_2",
-                "type": "png"
-            },
-            {
-                "file": "images/med-1.png",
-                "name": "IMAGE_MED_1",
-                "type": "png"
-            },
-            {
-                "file": "images/med-0.png",
-                "name": "IMAGE_MED_0",
-                "type": "png"
-            },
-            {
-                "file": "images/med-colon.png",
-                "name": "IMAGE_MED_COLON",
-                "type": "png"
-            },
-            {
-                "file": "images/med-divide.png",
-                "name": "IMAGE_MED_DIVIDE",
-                "type": "png"
-            },
-            {
-                "file": "images/background.png",
-                "name": "IMAGE_BACKGROUND",
-                "type": "png"
-            },
-            {
-                "file": "images/background-minimal.png",
-                "name": "IMAGE_BACKGROUND_MINIMAL",
-                "type": "png"
-            },
-            {
-                "file": "images/background-simple.png",
-                "name": "IMAGE_BACKGROUND_SIMPLE",
-                "type": "png"
-            },
-            {
-                "file": "images/background-none.png",
-                "name": "IMAGE_BACKGROUND_NONE",
-                "type": "png"
-            },
-            {
-                "file": "images/battery-100.png",
-                "name": "IMAGE_BATTERY_100",
-                "type": "png"
-            },
-            {
-                "file": "images/battery-75.png",
-                "name": "IMAGE_BATTERY_75",
-                "type": "png"
-            },
-            {
-                "file": "images/battery-50.png",
-                "name": "IMAGE_BATTERY_50",
-                "type": "png"
-            },
-            {
-                "file": "images/battery-25.png",
-                "name": "IMAGE_BATTERY_25",
-                "type": "png"
-            },
-            {
-                "file": "images/battery-0.png",
-                "name": "IMAGE_BATTERY_0",
-                "type": "png"
-            },
-            {
-                "file": "images/battery-charge.png",
-                "name": "IMAGE_BATTERY_CHARGE",
-                "type": "png"
-            },
-            {
-                "file": "images/hand-minute.png",
-                "name": "IMAGE_HAND_MINUTE",
-                "type": "png"
-            },
-            {
-                "file": "images/hand-hour.png",
-                "name": "IMAGE_HAND_HOUR",
-                "type": "png"
-            },
-            {
-                "file": "images/big-battery-charge.png",
-                "name": "IMAGE_BIG_BATTERY_CHARGE",
-                "type": "png"
-            },
-            {
-                "file": "images/big-battery-100.png",
-                "name": "IMAGE_BIG_BATTERY_100",
-                "type": "png"
-            },
-            {
-                "file": "images/big-battery-75.png",
-                "name": "IMAGE_BIG_BATTERY_75",
-                "type": "png"
-            },
-            {
-                "file": "images/big-battery-50.png",
-                "name": "IMAGE_BIG_BATTERY_50",
-                "type": "png"
-            },
-            {
-                "file": "images/big-battery-25.png",
-                "name": "IMAGE_BIG_BATTERY_25",
-                "type": "png"
-            },
-            {
-                "file": "images/big-battery-0.png",
-                "name": "IMAGE_BIG_BATTERY_0",
-                "type": "png"
-            },
-            {
-                "file": "images/big-divide.png",
-                "name": "IMAGE_BIG_DIVIDE",
-                "type": "png"
-            },
-            {
-                "file": "images/big-colon.png",
-                "name": "IMAGE_BIG_COLON",
-                "type": "png"
-            },
-            {
-                "file": "images/big-9.png",
-                "name": "IMAGE_BIG_9",
-                "type": "png"
-            },
-            {
-                "file": "images/big-8.png",
-                "name": "IMAGE_BIG_8",
-                "type": "png"
-            }
-        ]
-    },
-    "shortName": "Aviator 2.0",
-    "uuid": "1757a18e-0e30-4389-aeca-7f0ff1391e77",
-    "versionCode": 12,
-    "versionLabel": "1.2",
-    "watchapp": {
-        "watchface": true
-    }
+  "appKeys": {
+    "background": 6,
+    "bigmode": 8,
+    "bluetoothvibe": 2,
+    "dayname": 10,
+    "hands": 4,
+    "invert": 1,
+    "seconds": 0,
+    "style": 5,
+    "timezone": 9,
+    "timezoneLabel": 11,
+    "timezoneOffset": 7,
+    "vibeminutes": 3
+  },
+  "capabilities": [
+    "configurable"
+  ],
+  "companyName": "orviwan",
+  "longName": "Aviator 2.0",
+  "projectType": "native",
+  "resources": {
+    "media": [
+      {
+        "file": "images/menu_icon.png",
+        "menuIcon": true,
+        "name": "IMAGE_MENU_ICON",
+        "type": "png"
+      },
+      {
+        "file": "images/big-7.png",
+        "name": "IMAGE_BIG_7",
+        "type": "png"
+      },
+      {
+        "file": "images/big-6.png",
+        "name": "IMAGE_BIG_6",
+        "type": "png"
+      },
+      {
+        "file": "images/big-5.png",
+        "name": "IMAGE_BIG_5",
+        "type": "png"
+      },
+      {
+        "file": "images/big-4.png",
+        "name": "IMAGE_BIG_4",
+        "type": "png"
+      },
+      {
+        "file": "images/big-3.png",
+        "name": "IMAGE_BIG_3",
+        "type": "png"
+      },
+      {
+        "file": "images/big-2.png",
+        "name": "IMAGE_BIG_2",
+        "type": "png"
+      },
+      {
+        "file": "images/big-1.png",
+        "name": "IMAGE_BIG_1",
+        "type": "png"
+      },
+      {
+        "file": "images/big-0.png",
+        "name": "IMAGE_BIG_0",
+        "type": "png"
+      },
+      {
+        "characterRegex": "[:0-9A-Z. -+]",
+        "file": "fonts/visitor2.ttf",
+        "name": "TINY_12",
+        "type": "font"
+      },
+      {
+        "file": "images/tiny-9.png",
+        "name": "IMAGE_TINY_9",
+        "type": "png"
+      },
+      {
+        "file": "images/tiny-8.png",
+        "name": "IMAGE_TINY_8",
+        "type": "png"
+      },
+      {
+        "file": "images/tiny-7.png",
+        "name": "IMAGE_TINY_7",
+        "type": "png"
+      },
+      {
+        "file": "images/tiny-6.png",
+        "name": "IMAGE_TINY_6",
+        "type": "png"
+      },
+      {
+        "file": "images/tiny-5.png",
+        "name": "IMAGE_TINY_5",
+        "type": "png"
+      },
+      {
+        "file": "images/tiny-4.png",
+        "name": "IMAGE_TINY_4",
+        "type": "png"
+      },
+      {
+        "file": "images/tiny-3.png",
+        "name": "IMAGE_TINY_3",
+        "type": "png"
+      },
+      {
+        "file": "images/tiny-2.png",
+        "name": "IMAGE_TINY_2",
+        "type": "png"
+      },
+      {
+        "file": "images/tiny-1.png",
+        "name": "IMAGE_TINY_1",
+        "type": "png"
+      },
+      {
+        "file": "images/tiny-0.png",
+        "name": "IMAGE_TINY_0",
+        "type": "png"
+      },
+      {
+        "file": "images/tiny-colon.png",
+        "name": "IMAGE_TINY_COLON",
+        "type": "png"
+      },
+      {
+        "file": "images/tiny-divide.png",
+        "name": "IMAGE_TINY_DIVIDE",
+        "type": "png"
+      },
+      {
+        "file": "images/med-9.png",
+        "name": "IMAGE_MED_9",
+        "type": "png"
+      },
+      {
+        "file": "images/med-8.png",
+        "name": "IMAGE_MED_8",
+        "type": "png"
+      },
+      {
+        "file": "images/med-7.png",
+        "name": "IMAGE_MED_7",
+        "type": "png"
+      },
+      {
+        "file": "images/med-6.png",
+        "name": "IMAGE_MED_6",
+        "type": "png"
+      },
+      {
+        "file": "images/med-5.png",
+        "name": "IMAGE_MED_5",
+        "type": "png"
+      },
+      {
+        "file": "images/med-4.png",
+        "name": "IMAGE_MED_4",
+        "type": "png"
+      },
+      {
+        "file": "images/med-3.png",
+        "name": "IMAGE_MED_3",
+        "type": "png"
+      },
+      {
+        "file": "images/med-2.png",
+        "name": "IMAGE_MED_2",
+        "type": "png"
+      },
+      {
+        "file": "images/med-1.png",
+        "name": "IMAGE_MED_1",
+        "type": "png"
+      },
+      {
+        "file": "images/med-0.png",
+        "name": "IMAGE_MED_0",
+        "type": "png"
+      },
+      {
+        "file": "images/med-colon.png",
+        "name": "IMAGE_MED_COLON",
+        "type": "png"
+      },
+      {
+        "file": "images/med-divide.png",
+        "name": "IMAGE_MED_DIVIDE",
+        "type": "png"
+      },
+      {
+        "file": "images/background.png",
+        "name": "IMAGE_BACKGROUND",
+        "type": "png"
+      },
+      {
+        "file": "images/background-minimal.png",
+        "name": "IMAGE_BACKGROUND_MINIMAL",
+        "type": "png"
+      },
+      {
+        "file": "images/background-simple.png",
+        "name": "IMAGE_BACKGROUND_SIMPLE",
+        "type": "png"
+      },
+      {
+        "file": "images/background-none.png",
+        "name": "IMAGE_BACKGROUND_NONE",
+        "type": "png"
+      },
+      {
+        "file": "images/battery-100.png",
+        "name": "IMAGE_BATTERY_100",
+        "type": "png"
+      },
+      {
+        "file": "images/battery-75.png",
+        "name": "IMAGE_BATTERY_75",
+        "type": "png"
+      },
+      {
+        "file": "images/battery-50.png",
+        "name": "IMAGE_BATTERY_50",
+        "type": "png"
+      },
+      {
+        "file": "images/battery-25.png",
+        "name": "IMAGE_BATTERY_25",
+        "type": "png"
+      },
+      {
+        "file": "images/battery-0.png",
+        "name": "IMAGE_BATTERY_0",
+        "type": "png"
+      },
+      {
+        "file": "images/battery-charge.png",
+        "name": "IMAGE_BATTERY_CHARGE",
+        "type": "png"
+      },
+      {
+        "file": "images/hand-minute.png",
+        "name": "IMAGE_HAND_MINUTE",
+        "type": "png"
+      },
+      {
+        "file": "images/hand-hour.png",
+        "name": "IMAGE_HAND_HOUR",
+        "type": "png"
+      },
+      {
+        "file": "images/big-battery-charge.png",
+        "name": "IMAGE_BIG_BATTERY_CHARGE",
+        "type": "png"
+      },
+      {
+        "file": "images/big-battery-100.png",
+        "name": "IMAGE_BIG_BATTERY_100",
+        "type": "png"
+      },
+      {
+        "file": "images/big-battery-75.png",
+        "name": "IMAGE_BIG_BATTERY_75",
+        "type": "png"
+      },
+      {
+        "file": "images/big-battery-50.png",
+        "name": "IMAGE_BIG_BATTERY_50",
+        "type": "png"
+      },
+      {
+        "file": "images/big-battery-25.png",
+        "name": "IMAGE_BIG_BATTERY_25",
+        "type": "png"
+      },
+      {
+        "file": "images/big-battery-0.png",
+        "name": "IMAGE_BIG_BATTERY_0",
+        "type": "png"
+      },
+      {
+        "file": "images/big-divide.png",
+        "name": "IMAGE_BIG_DIVIDE",
+        "type": "png"
+      },
+      {
+        "file": "images/big-colon.png",
+        "name": "IMAGE_BIG_COLON",
+        "type": "png"
+      },
+      {
+        "file": "images/big-9.png",
+        "name": "IMAGE_BIG_9",
+        "type": "png"
+      },
+      {
+        "file": "images/big-8.png",
+        "name": "IMAGE_BIG_8",
+        "type": "png"
+      }
+    ]
+  },
+  "shortName": "Aviator 2.0",
+  "uuid": "1757a18e-0e30-4389-aeca-7f0ff1391e77",
+  "versionCode": 12,
+  "versionLabel": "1.2",
+  "watchapp": {
+    "watchface": true
+  },
+  "targetPlatforms": [
+    "aplite",
+    "basalt"
+  ],
+  "sdkVersion": "3"
 }
