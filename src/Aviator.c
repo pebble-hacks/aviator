@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include <ctype.h>
-	
+#include <effect_layer.h>
+
 #define SETTINGS_KEY 99
 
 typedef struct persist {
@@ -53,7 +54,7 @@ enum {
     BIG_MODE_KEY = 0x8,
 	  TIMEZONE_KEY = 0x9,
     DAYNAME_KEY = 0xA,
-    TIMEZONE_LABEL_KEY = 0xB,	
+    TIMEZONE_LABEL_KEY = 0xB,
     NUM_CONFIG_KEYS = 0xC
 };
 
@@ -73,7 +74,7 @@ static TextLayer *tiny_alarm_text;
 static GBitmap *background_image;
 static BitmapLayer *background_layer;
 
-static InverterLayer *inverter_layer;
+static EffectLayer *inverter_layer;
 
 static GBitmap *battery_image;
 static BitmapLayer *battery_image_layer;
@@ -137,7 +138,7 @@ static BitmapLayer *date_digits_layers[TOTAL_DATE_DIGITS];
 static BitmapLayer *big_date_digits_layers[TOTAL_BIG_DATE_DIGITS];
 
 #define TOTAL_DIGIT_IMAGES 12
-	
+
 const int TINY_IMAGE_RESOURCE_IDS[] = {
     RESOURCE_ID_IMAGE_TINY_0,
     RESOURCE_ID_IMAGE_TINY_1,
@@ -244,13 +245,13 @@ static void toggleBigMode() {
 	if(settings.BigMode) {
         layer_set_hidden(bitmap_layer_get_layer(battery_image_layer), true);
         layer_set_hidden(bitmap_layer_get_layer(big_battery_image_layer), false);
-    
+
 		layer_set_hidden(time_layer, true);
 		layer_set_hidden(zulu_time_layer, true);
 		layer_set_hidden(date_layer, true);
-		
+
 		layer_set_hidden(big_time_layer, false);
-		
+
 		if(settings.Style<2) {
 			layer_set_hidden(big_zulu_time_layer, true);
 			layer_set_hidden(text_layer_get_layer(tiny_bottom_text), false); //true);
@@ -259,23 +260,23 @@ static void toggleBigMode() {
 		else {
 			layer_set_hidden(big_zulu_time_layer, false);
 			layer_set_hidden(text_layer_get_layer(tiny_bottom_text), false);
-			layer_set_hidden(big_date_layer, true);	
+			layer_set_hidden(big_date_layer, true);
 		}
-		
+
 		layer_set_frame(top_layer, GRect(0, -9, 144, 168));
 		layer_set_frame(bottom_layer, GRect(0, 10, 144, 168));
 	}
 	else {
-    
+
         layer_set_hidden(bitmap_layer_get_layer(battery_image_layer), false);
         layer_set_hidden(bitmap_layer_get_layer(big_battery_image_layer), true);
-        
+
 		layer_set_hidden(time_layer, false);
-		
+
 		layer_set_hidden(big_time_layer, true);
 		layer_set_hidden(big_zulu_time_layer, true);
 		layer_set_hidden(big_date_layer, true);
-        
+
 		if(settings.Style<2) {
 			layer_set_hidden(zulu_time_layer, true);
 			layer_set_hidden(text_layer_get_layer(tiny_bottom_text), false); //true);
@@ -284,9 +285,9 @@ static void toggleBigMode() {
 		else {
 			layer_set_hidden(zulu_time_layer, false);
 			layer_set_hidden(text_layer_get_layer(tiny_bottom_text), false);
-			layer_set_hidden(date_layer, true);	
+			layer_set_hidden(date_layer, true);
 		}
-		
+
 		layer_set_frame(top_layer, GRect(0, 0, 144, 168));
 		layer_set_frame(bottom_layer, GRect(0, 0, 144, 168));
 	}
@@ -294,17 +295,18 @@ static void toggleBigMode() {
 
 static void remove_invert() {
     if (inverter_layer != NULL) {
-		layer_remove_from_parent(inverter_layer_get_layer(inverter_layer));
-		inverter_layer_destroy(inverter_layer);
+		layer_remove_from_parent(effect_layer_get_layer(inverter_layer));
+		layer_destroy(effect_layer_get_layer(inverter_layer));
 		inverter_layer = NULL;
     }
 }
 
 static void set_invert() {
     if (!inverter_layer) {
-		inverter_layer = inverter_layer_create(GRect(0, 0, 144, 168));
-		layer_add_child(window_get_root_layer(window), inverter_layer_get_layer(inverter_layer));
-		layer_mark_dirty(inverter_layer_get_layer(inverter_layer));
+		inverter_layer = effect_layer_create(GRect(0, 0, 144, 168));
+		layer_add_child(window_get_root_layer(window), effect_layer_get_layer(inverter_layer));
+		effect_layer_add_effect(inverter_layer, effect_invert, NULL);
+		layer_mark_dirty(effect_layer_get_layer(inverter_layer));
     }
 }
 
@@ -318,32 +320,32 @@ void change_background() {
 		case 0:
 			background_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND);
 			break;
-		
+
 		case 1:
 			background_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND_SIMPLE);
 			break;
-			
+
 		case 2:
 			background_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND_MINIMAL);
 			break;
-			
+
 		case 3:
 			background_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND_NONE);
 			break;
     }
-    
+
     if (background_image != NULL) {
 		bitmap_layer_set_bitmap(background_layer, background_image);
 		layer_set_hidden(bitmap_layer_get_layer(background_layer), false);
 		layer_mark_dirty(bitmap_layer_get_layer(background_layer));
     }
-    
+
 }
 
 static void toggleHands(bool hidden) {
 	layer_set_hidden((Layer *)minuteHandLayer, hidden);
 	layer_set_hidden((Layer *)hourHandLayer, hidden);
-} 
+}
 
 static void toggleSeconds(bool hidden) {
     layer_set_hidden(bitmap_layer_get_layer(time_digits_layers[5]), hidden);
@@ -367,8 +369,8 @@ static void toggleSeconds(bool hidden) {
 			layer_set_frame(zulu_time_layer, GRect(9, 0, 144, 168));
 		} else {
 			layer_set_frame(zulu_time_layer, GRect(16, 0, 144, 168));
-		}        
-        
+		}
+
     } else {
         // seconds are visible
 		if (mTimeLayerShifted) {
@@ -396,14 +398,14 @@ void bluetooth_connection_callback(bool connected) {
 static void set_container_image(BitmapLayer *bmp_layer, const GBitmap *bmp_image, GPoint origin) {
 	GRect frame = (GRect) {
 		.origin = origin,
-		.size = bmp_image->bounds.size
+		.size = gbitmap_get_bounds(bmp_image).size
 	};
 	bitmap_layer_set_bitmap(bmp_layer, bmp_image);
 	layer_set_frame(bitmap_layer_get_layer(bmp_layer), frame);
-} 
+}
 
 static void update_battery(BatteryChargeState charge_state) {
-	
+
 	mCharging = charge_state.is_charging;
     batteryPercent = charge_state.charge_percent;
 
@@ -461,7 +463,7 @@ static void update_days(struct tm *tick_time) {
 		{0, 0},		// -
 		{95, 94},	// 6
 		{109, 94}, 	// 7
-	};	
+	};
 	int first_digit, second_digit, third_digit, fourth_digit;
     int month = tick_time->tm_mon + 1;
     int year = tick_time->tm_year + 1900;
@@ -509,7 +511,7 @@ static void update_days(struct tm *tick_time) {
 static void update_hours(struct tm *tick_time) {
 	static GPoint hourDigitPos[2] = { {26, 62}, {40, 62} };
 	static GPoint bighourDigitPos[2] = { {27, 62}, {48, 62} };
-	
+
     static char top_text[20] = "";
     static char bottom_text[20] = "";
     unsigned short display_hour = get_display_hour(tick_time->tm_hour);
@@ -519,7 +521,7 @@ static void update_hours(struct tm *tick_time) {
 
     set_container_image(big_time_digits_layers[0], bigDigits[display_hour / 10], bighourDigitPos[0]);
     set_container_image(big_time_digits_layers[1], bigDigits[display_hour % 10], bighourDigitPos[1]);
-	
+
     if (!clock_is_24h_style()) {
 		if (display_hour / 10 == 0) {
 			layer_set_frame(time_layer, GRect(-6, 0, 144, 168));
@@ -534,7 +536,7 @@ static void update_hours(struct tm *tick_time) {
 			layer_set_hidden(bitmap_layer_get_layer(time_digits_layers[0]), false);
 			layer_set_hidden(bitmap_layer_get_layer(big_time_digits_layers[0]), false);
 		}
-	
+
         if(settings.Seconds) {
 		    toggleSeconds(false);
         }
@@ -550,7 +552,7 @@ static void update_hours(struct tm *tick_time) {
 	} else {
 		strncpy(top_text, "LOCAL 24", sizeof(top_text));
     }
-    
+
     //day name
     if(settings.Dayname) {
         strftime(bottom_text,
@@ -560,14 +562,14 @@ static void update_hours(struct tm *tick_time) {
         text_layer_set_text(tiny_bottom_text, trim(upcase(bottom_text)));
     }
     text_layer_set_text(tiny_top_text, trim(top_text));
-    
+
 }
 
 static void update_minutes(struct tm *tick_time) {
 	static GPoint minuteDigitPos[2] = { {59, 62}, {73, 62} };
 	static GPoint bigminuteDigitPos[2] = { {78, 62}, {99, 62} };
     if (settings.VibeMinutes > 0 && !mCharging) {
-		
+
 		if(tick_time->tm_min%settings.VibeMinutes==0) {
 			vibes_double_pulse();
 		}
@@ -582,7 +584,7 @@ static void update_minutes(struct tm *tick_time) {
     }
     set_container_image(time_digits_layers[3], medDigits[tick_time->tm_min / 10], minuteDigitPos[0]);
     set_container_image(time_digits_layers[4], medDigits[tick_time->tm_min % 10], minuteDigitPos[1]);
-	
+
     set_container_image(big_time_digits_layers[3], bigDigits[tick_time->tm_min / 10], bigminuteDigitPos[0]);
     set_container_image(big_time_digits_layers[4], bigDigits[tick_time->tm_min % 10], bigminuteDigitPos[1]);
 }
@@ -606,7 +608,7 @@ static void update_hands(struct tm *t) {
 	r.origin.y = 84 - r.size.h/2 + 57 * sin_lookup((minuteAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
 	layer_set_frame((Layer *)minuteHandLayer, r);
 	rot_bitmap_layer_set_angle(minuteHandLayer, minuteAngle);
-	
+
 	r = layer_get_frame((Layer *)hourHandLayer);
 	r.origin.x = 72 - r.size.w/2 + 58 * cos_lookup((hourAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
 	r.origin.y = 84 - r.size.h/2 + 58 * sin_lookup((hourAngle + 3 * TRIG_MAX_ANGLE / 4)%TRIG_MAX_ANGLE) / TRIG_MAX_RATIO;
@@ -625,7 +627,7 @@ static void update_zulu_hours(struct tm *tick_time) {
 
     set_container_image(big_zulu_time_digits_layers[0], bigDigits[display_hour / 10], bighourDigitPos[0]);
     set_container_image(big_zulu_time_digits_layers[1], bigDigits[display_hour % 10], bighourDigitPos[1]);
-	
+
     if (!clock_is_24h_style()) {
 		if (display_hour / 10 == 0) {
 			layer_set_frame(zulu_time_layer, GRect(-7, 0, 144, 168));
@@ -640,7 +642,7 @@ static void update_zulu_hours(struct tm *tick_time) {
 			layer_set_hidden(bitmap_layer_get_layer(zulu_time_digits_layers[0]), false);
 			layer_set_hidden(bitmap_layer_get_layer(big_zulu_time_digits_layers[0]), false);
 		}
-		
+
         if(settings.Seconds) {
 		    toggleSeconds(false);
         }
@@ -668,7 +670,7 @@ static void update_zulu_minutes(struct tm *tick_time) {
 	static GPoint bigminuteDigitPos[2] = { {78, 94}, {99, 94} };
     set_container_image(zulu_time_digits_layers[3], medDigits[tick_time->tm_min / 10], minuteDigitPos[0]);
     set_container_image(zulu_time_digits_layers[4], medDigits[tick_time->tm_min % 10], minuteDigitPos[1]);
-	
+
     set_container_image(big_zulu_time_digits_layers[3], bigDigits[tick_time->tm_min / 10], bigminuteDigitPos[0]);
     set_container_image(big_zulu_time_digits_layers[4], bigDigits[tick_time->tm_min % 10], bigminuteDigitPos[1]);
 }
@@ -685,14 +687,14 @@ static void update_zulu_seconds(struct tm *tick_time) {
 
 static void handle_tick(struct tm *tick_time, TimeUnits units_changed) {
 	time_t local, utc;
-	
+
 	if (settings.Style == 2) {
 		local = time(NULL);
 		//APP_LOG(APP_LOG_LEVEL_DEBUG, "local! %lu", (unsigned long)local);
 		//APP_LOG(APP_LOG_LEVEL_DEBUG, "settings.TimezoneOffset! %i", settings.TimezoneOffset);
 		utc = local + settings.TimezoneOffset;
 		//APP_LOG(APP_LOG_LEVEL_DEBUG, "utc! %lu", (unsigned long)utc);
-		
+
 		zulu_tick_time = *(localtime(&utc));
 		//APP_LOG(APP_LOG_LEVEL_DEBUG, "zulu_tick_time! %lu", (unsigned long)zulu_tick_time);
 		// BEGIN SECTION - Remove this section and the zulu/local time are
@@ -702,12 +704,12 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed) {
 		//		This line can also be replaced with an APP_LOG call to have it working, but psleep fails.
 		tick_time = localtime(&local);
 		// END SECTION
-	}	
+	}
 
     if ((units_changed & DAY_UNIT) && (settings.Style < 2)) {
 		update_days(tick_time);
     }
-    
+
     if (units_changed & HOUR_UNIT) {
 		update_hours(tick_time);
 		if (settings.Style == 2) {
@@ -724,7 +726,7 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed) {
 			update_zulu_minutes(&zulu_tick_time);
 		}
     }
-    
+
     if ((units_changed & SECOND_UNIT) && (settings.Seconds == 1)) {
 		update_seconds(tick_time);
 		if (settings.Style == 2) {
@@ -750,7 +752,7 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 				tick_timer_service_subscribe(MINUTE_UNIT, handle_tick);
 			}
 			break;
-			
+
 		case INVERT_KEY:
 			remove_invert();
 			settings.Invert = new_tuple->value->uint8;
@@ -785,12 +787,12 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 			settings.Hands = new_tuple->value->uint8;
             toggleHands(!settings.Hands);
 			break;
-		
+
 		case STYLE_KEY:
 			settings.Style = new_tuple->value->uint8;
 			time_t now = time(NULL);
 			struct tm *tick_time = localtime(&now);
-			
+
 			if (settings.Style < 2) {
 				layer_set_hidden(zulu_time_layer, true);
 				layer_set_hidden(text_layer_get_layer(tiny_bottom_text), false); //true);
@@ -809,7 +811,7 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 				}
 			}
 			break;
-			
+
 		case BACKGROUND_KEY:
 			settings.Background = new_tuple->value->uint8;
 			change_background();
@@ -827,11 +829,11 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 			APP_LOG(APP_LOG_LEVEL_DEBUG, "ZULU HOURS1: %s", new_tuple->value->cstring);
 			snprintf(settings.TimezoneLabel, sizeof(settings.TimezoneLabel), "%s", new_tuple->value->cstring);
 			APP_LOG(APP_LOG_LEVEL_DEBUG, "ZULU HOURS2: %s", settings.TimezoneLabel);
-		
+
 			time_t ttnow = time(NULL);
 			struct tm *tttick_time = localtime(&ttnow);
 			handle_tick(tttick_time, SECOND_UNIT + MINUTE_UNIT + HOUR_UNIT + DAY_UNIT);
-		
+
 			break;
 		case BIG_MODE_KEY:
 			settings.BigMode = new_tuple->value->uint8;
@@ -839,9 +841,9 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 			break;
         case DAYNAME_KEY:
 			settings.Dayname = new_tuple->value->uint8;
-		
+
 			APP_LOG(APP_LOG_LEVEL_DEBUG, "DAYNAME!: %d", settings.Dayname);
-		
+
 			time_t ttttnow = time(NULL);
 			struct tm *ttttick_time = localtime(&ttttnow);
 			handle_tick(ttttick_time, HOUR_UNIT);
@@ -849,7 +851,7 @@ static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tu
 	}
 }
 
-static void loadPersistentSettings() {	
+static void loadPersistentSettings() {
 	valueRead = persist_read_data(SETTINGS_KEY, &settings, sizeof(settings));
 }
 
@@ -859,9 +861,9 @@ static void savePersistentSettings() {
 
 static void init(void) {
 	int i;
-	
+
 	loadPersistentSettings();
-	
+
 	Tuplet initial_values[NUM_CONFIG_KEYS] = {
 		TupletInteger(SECONDS_KEY, settings.Seconds),
 		TupletInteger(INVERT_KEY, settings.Invert),
@@ -886,7 +888,7 @@ static void init(void) {
 	window_stack_push(window, true);
 
     Layer *window_layer = window_get_root_layer(window);
-	
+
     GRect dummy_frame = { {0, 0}, {0, 0} };
 	GRect full_frame = layer_get_frame(window_layer);
 
@@ -905,7 +907,7 @@ static void init(void) {
 			//APP_LOG(APP_LOG_LEVEL_DEBUG, "init() - gbitmap_create Failed for bigDigits[%d]", i);
 		}
 	}
-	
+
 	// Load battery bitmaps
 	for (i=0; i<6; i++) {
 		battery_bitmap[i] = gbitmap_create_with_resource(BATTERY_IMAGE_RESOURCE_IDS[i]);
@@ -913,7 +915,7 @@ static void init(void) {
 			APP_LOG(APP_LOG_LEVEL_DEBUG, "init() - gbitmap_create Failed for battery_bitmap[%d]", i);
 		}*/
 	}
-    
+
 	// Load big battery bitmaps
 	for (i=0; i<6; i++) {
 		big_battery_bitmap[i] = gbitmap_create_with_resource(BIG_BATTERY_IMAGE_RESOURCE_IDS[i]);
@@ -921,52 +923,52 @@ static void init(void) {
 			APP_LOG(APP_LOG_LEVEL_DEBUG, "init() - gbitmap_create Failed for battery_bitmap[%d]", i);
 		}*/
 	}
-	
+
     // BACKGROUND
     background_image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_BACKGROUND);
     background_layer = bitmap_layer_create(layer_get_frame(window_layer));
     bitmap_layer_set_bitmap(background_layer, background_image);
     layer_add_child(window_layer, bitmap_layer_get_layer(background_layer));
-	
+
 	// TOP LAYER //
     top_layer = layer_create(full_frame);
 	layer_add_child(window_layer, top_layer);
-	
+
 	// BOTTOM LAYER //
     bottom_layer = layer_create(full_frame);
     layer_add_child(window_layer, bottom_layer);
 
-    // TIME LAYER // 
+    // TIME LAYER //
     time_layer = layer_create(full_frame);
     layer_add_child(top_layer, time_layer);
-	
-	// BIG TIME LAYER // 
-    big_time_layer = layer_create(full_frame);
-    layer_add_child(top_layer, big_time_layer);	
-	
-    // ZULU TIME LAYER // 
-    zulu_time_layer = layer_create(full_frame);
-    layer_add_child(window_layer, zulu_time_layer);	
-	
-    // BIG ZULU TIME LAYER // 
-    big_zulu_time_layer = layer_create(full_frame);
-    layer_add_child(window_layer, big_zulu_time_layer);	
 
-    // DATE LAYER // 
+	// BIG TIME LAYER //
+    big_time_layer = layer_create(full_frame);
+    layer_add_child(top_layer, big_time_layer);
+
+    // ZULU TIME LAYER //
+    zulu_time_layer = layer_create(full_frame);
+    layer_add_child(window_layer, zulu_time_layer);
+
+    // BIG ZULU TIME LAYER //
+    big_zulu_time_layer = layer_create(full_frame);
+    layer_add_child(window_layer, big_zulu_time_layer);
+
+    // DATE LAYER //
     date_layer = layer_create(full_frame);
     layer_add_child(window_layer, date_layer);
-	
-    // BIG DATE LAYER // 
+
+    // BIG DATE LAYER //
     big_date_layer = layer_create(full_frame);
     layer_add_child(window_layer, big_date_layer);
-	
 
-    // TIME    
+
+    // TIME
     for (i = 0; i < TOTAL_TIME_DIGITS; ++i) {
 		time_digits_layers[i] = bitmap_layer_create(dummy_frame);
 		layer_add_child(time_layer, bitmap_layer_get_layer(time_digits_layers[i]));
     }
-	
+
 	// BIG TIME
     for (i = 0; i < TOTAL_BIG_TIME_DIGITS; ++i) {
 		big_time_digits_layers[i] = bitmap_layer_create(dummy_frame);
@@ -991,14 +993,14 @@ static void init(void) {
 
     // BIG TIME COLONS
     set_container_image(big_time_digits_layers[2], bigDigits[COLON], GPoint(69, 68));
-	
+
     // ZULU TIME COLONS
     set_container_image(zulu_time_digits_layers[2], medDigits[COLON], GPoint(54, 100));
     set_container_image(zulu_time_digits_layers[5], medDigits[COLON], GPoint(87, 100));
-	
+
     // BIG ZULU TIME COLONS
     set_container_image(big_zulu_time_digits_layers[2], bigDigits[COLON], GPoint(69, 100));
-	
+
     // HIDE ZULU INITIALLY
     layer_set_hidden(zulu_time_layer, true);
 	layer_set_hidden(big_zulu_time_layer, true);
@@ -1009,7 +1011,7 @@ static void init(void) {
 		date_digits_layers[i] = bitmap_layer_create(dummy_frame);
 		layer_add_child(date_layer, bitmap_layer_get_layer(date_digits_layers[i]));
     }
-	
+
     // BIG DATE
     for (i = 0; i < TOTAL_BIG_DATE_DIGITS; ++i) {
 		big_date_digits_layers[i] = bitmap_layer_create(dummy_frame);
@@ -1019,22 +1021,22 @@ static void init(void) {
     // DATE SEPARATORS
     set_container_image(date_digits_layers[2], tinyDigits[SLASH], GPoint(47, 94));
     set_container_image(date_digits_layers[5], tinyDigits[SLASH], GPoint(73, 94));
-	
+
     // BIG DATE SEPARATORS
     set_container_image(big_date_digits_layers[2], medDigits[SLASH], GPoint(51, 101));
     set_container_image(big_date_digits_layers[5], medDigits[SLASH], GPoint(87, 101));
 
-    // BATTERY 
+    // BATTERY
     battery_image_layer = bitmap_layer_create(BatteryFrame);
     bitmap_layer_set_bitmap(battery_image_layer, battery_bitmap[0]);
-    layer_add_child(window_layer, bitmap_layer_get_layer(battery_image_layer));    
-    
+    layer_add_child(window_layer, bitmap_layer_get_layer(battery_image_layer));
+
     // BIG BATTERY
     big_battery_image_layer = bitmap_layer_create(BigBatteryFrame);
     bitmap_layer_set_bitmap(big_battery_image_layer, big_battery_bitmap[0]);
     layer_add_child(window_layer, bitmap_layer_get_layer(big_battery_image_layer));
     layer_set_hidden(bitmap_layer_get_layer(big_battery_image_layer), true);
-        
+
     update_battery(battery_state_service_peek());
 
     // TINY TEXT LABELS
@@ -1065,7 +1067,7 @@ static void init(void) {
 	minuteHandBitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_HAND_MINUTE);
 	/*if (minuteHandBitmap == NULL) {
 		APP_LOG(APP_LOG_LEVEL_DEBUG, "init() - gbitmap_create Failed for minuteHandBitmap");
-	}*/	
+	}*/
 	minuteHandLayer = rot_bitmap_layer_create(minuteHandBitmap);
 	rot_bitmap_set_compositing_mode(minuteHandLayer, GCompOpOr);
 	layer_add_child(window_layer, (Layer *)minuteHandLayer);
@@ -1074,11 +1076,11 @@ static void init(void) {
 	hourHandBitmap = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_HAND_HOUR);
 	/*if (hourHandBitmap == NULL) {
 		APP_LOG(APP_LOG_LEVEL_DEBUG, "init() - gbitmap_create Failed for hourHandBitmap");
-	}*/	
+	}*/
 	hourHandLayer = rot_bitmap_layer_create(hourHandBitmap);
 	rot_bitmap_set_compositing_mode(hourHandLayer, GCompOpOr);
 	layer_add_child(window_layer, (Layer *)hourHandLayer);
-	
+
 	//toggleBigMode();
 
     // Avoids a blank screen on watch start.
@@ -1094,9 +1096,9 @@ static void init(void) {
 
 static void deinit(void) {
 	int i;
-	
+
 	savePersistentSettings();
-	
+
     app_sync_deinit(&sync);
 
     tick_timer_service_unsubscribe();
@@ -1108,11 +1110,11 @@ static void deinit(void) {
     if (background_image != NULL) {
 		gbitmap_destroy(background_image);
     }
-    
+
     layer_remove_from_parent(bitmap_layer_get_layer(battery_image_layer));
     bitmap_layer_destroy(battery_image_layer);
     gbitmap_destroy(battery_image);
-    
+
     layer_remove_from_parent(bitmap_layer_get_layer(big_battery_image_layer));
     bitmap_layer_destroy(big_battery_image_layer);
     gbitmap_destroy(big_battery_image);
@@ -1126,11 +1128,11 @@ static void deinit(void) {
 		bitmap_layer_destroy(big_time_digits_layers[i]);
 		bitmap_layer_destroy(big_zulu_time_digits_layers[i]);
     }
-	
+
     for (i = 0; i < TOTAL_DATE_DIGITS; i++) {
 		bitmap_layer_destroy(date_digits_layers[i]);
     }
-	
+
     for (i = 0; i < TOTAL_BIG_DATE_DIGITS; i++) {
 		bitmap_layer_destroy(big_date_digits_layers[i]);
     }
@@ -1144,7 +1146,7 @@ static void deinit(void) {
 	for (i=0; i<6; i++) {
 		gbitmap_destroy(battery_bitmap[i]);
 	}
-    
+
 	for (i=0; i<6; i++) {
 		gbitmap_destroy(big_battery_bitmap[i]);
 	}
@@ -1160,14 +1162,14 @@ static void deinit(void) {
     text_layer_destroy(tiny_top_text);
     text_layer_destroy(tiny_bottom_text);
     text_layer_destroy(tiny_alarm_text);
-    inverter_layer_destroy(inverter_layer);
+    effect_layer_destroy(inverter_layer);
     layer_destroy(time_layer);
 	layer_destroy(big_time_layer);
     layer_destroy(zulu_time_layer);
 	layer_destroy(big_zulu_time_layer);
     layer_destroy(date_layer);
 	layer_destroy(big_date_layer);
-	
+
 	layer_destroy(top_layer);
 	layer_destroy(bottom_layer);
 
