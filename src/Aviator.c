@@ -74,7 +74,7 @@ static TextLayer *tiny_alarm_text;
 static GBitmap *background_image;
 static BitmapLayer *background_layer;
 
-static EffectLayer *inverter_layer;
+static InverterLayer *inverter_layer;
 
 static GBitmap *battery_image;
 static BitmapLayer *battery_image_layer;
@@ -294,20 +294,11 @@ static void toggleBigMode() {
 }
 
 static void remove_invert() {
-    if (inverter_layer != NULL) {
-		layer_remove_from_parent(effect_layer_get_layer(inverter_layer));
-		layer_destroy(effect_layer_get_layer(inverter_layer));
-		inverter_layer = NULL;
-    }
+	layer_set_hidden(inverter_layer_get_layer(inverter_layer), true);
 }
 
 static void set_invert() {
-    if (!inverter_layer) {
-		inverter_layer = effect_layer_create(GRect(0, 0, 144, 168));
-		layer_add_child(window_get_root_layer(window), effect_layer_get_layer(inverter_layer));
-		effect_layer_add_effect(inverter_layer, effect_invert, NULL);
-		layer_mark_dirty(effect_layer_get_layer(inverter_layer));
-    }
+	layer_set_hidden(inverter_layer_get_layer(inverter_layer), false);
 }
 
 void change_background() {
@@ -736,7 +727,7 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed) {
 }
 
 static void sync_tuple_changed_callback(const uint32_t key, const Tuple * new_tuple, const Tuple * old_tuple, void *context) {
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "TUPLE! %lu : %d", key, new_tuple->value->uint8);
+  //APP_LOG(APP_LOG_LEVEL_DEBUG, "TUPLE! %lu : %d", key, new_tuple->value->uint8);
 	if(new_tuple==NULL || new_tuple->value==NULL) {
 		return;
 	}
@@ -1082,6 +1073,11 @@ static void init(void) {
 	layer_add_child(window_layer, (Layer *)hourHandLayer);
 
 	//toggleBigMode();
+	
+	inverter_layer = inverter_layer_create(GRect(0, 0, 144, 168));
+	layer_add_child(window_get_root_layer(window), inverter_layer_get_layer(inverter_layer));
+	//inverter_layer_add_effect(inverter_layer, effect_invert, NULL);
+	remove_invert();
 
     // Avoids a blank screen on watch start.
     time_t now = time(NULL);
@@ -1151,7 +1147,7 @@ static void deinit(void) {
 		gbitmap_destroy(big_battery_bitmap[i]);
 	}
 
-    fonts_unload_custom_font(tiny_font);
+	fonts_unload_custom_font(tiny_font);
 
 	rot_bitmap_layer_destroy(minuteHandLayer);
 	rot_bitmap_layer_destroy(hourHandLayer);
@@ -1159,21 +1155,23 @@ static void deinit(void) {
 	gbitmap_destroy(minuteHandBitmap);
 	gbitmap_destroy(hourHandBitmap);
 
-    text_layer_destroy(tiny_top_text);
-    text_layer_destroy(tiny_bottom_text);
-    text_layer_destroy(tiny_alarm_text);
-    effect_layer_destroy(inverter_layer);
-    layer_destroy(time_layer);
+	text_layer_destroy(tiny_top_text);
+	text_layer_destroy(tiny_bottom_text);
+	text_layer_destroy(tiny_alarm_text);
+
+	inverter_layer_destroy(inverter_layer);
+
+	layer_destroy(time_layer);
 	layer_destroy(big_time_layer);
-    layer_destroy(zulu_time_layer);
+	layer_destroy(zulu_time_layer);
 	layer_destroy(big_zulu_time_layer);
-    layer_destroy(date_layer);
+	layer_destroy(date_layer);
 	layer_destroy(big_date_layer);
 
 	layer_destroy(top_layer);
 	layer_destroy(bottom_layer);
 
-    window_destroy(window);
+	window_destroy(window);
 }
 
 int main(void) {
